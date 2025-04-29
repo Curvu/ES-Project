@@ -1,13 +1,12 @@
 import { BrowserRouter, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import React from 'react';
 import Home from 'pages/Home';
-import Register from 'pages/Register';
-import Login from 'pages/Login';
+import Sign from 'pages/Sign';
 
 const isLoggedIn = () => !!localStorage.getItem('token');
 
 const PrivateRoutes = () => {
-  return isLoggedIn() ? <Outlet /> : <Navigate to='/login' replace />;
+  return isLoggedIn() ? <Outlet /> : <Navigate to='/sign' replace />;
 };
 
 const PublicRoutes = () => {
@@ -22,8 +21,7 @@ function App() {
           <Route path='/' element={<Home />} />
         </Route>
         <Route element={<PublicRoutes />}>
-          <Route path='/login' element={<Login />} />
-          <Route path='/register' element={<Register />} />
+          <Route path='/sign' element={<Sign />} />
         </Route>
       </Routes>
     </BrowserRouter>
