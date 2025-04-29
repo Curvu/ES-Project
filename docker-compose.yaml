@@ -6,7 +6,7 @@ services:
       target: development
     stdin_open: true
     tty: true
-    command: sh -c "python manage.py runserver 0.0.0.0:8080"
+    command: sh -c "pip install -r requirements.txt && python manage.py runserver 0.0.0.0:8080"
     volumes:
       - ./backend:/app
     ports:
