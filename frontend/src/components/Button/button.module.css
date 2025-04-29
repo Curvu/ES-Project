@@ -1,0 +1,29 @@
+.button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+
+  font-size: 1rem;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.25s;
+
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+
+  background-color: #1a1a1a;
+}
+
+.button:hover {
+  border-color: #646cff;
+}
+
+.button:active {
+  outline: 4px auto -webkit-focus-ring-color;
+}

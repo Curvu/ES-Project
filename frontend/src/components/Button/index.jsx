@@ -1,11 +1,10 @@
-import { useState } from 'react'
+import React from 'react';
+import styles from './button.module.css';
 
-export const Button = () => {
-  const [count, setCount] = useState(0)
-
+export const Button= ({ children, onClick, disabled = false, isLoading = false, className = '' }) => {
   return (
-    <button onClick={() => setCount((count) => count + 1)}>
-      count is {count}
+    <button className={`${styles.button} ${className}`} onClick={onClick} disabled={disabled || isLoading}>
+      {!isLoading ? children : <span>Loading...</span>}
     </button>
-  )
-}
+  );
+};
