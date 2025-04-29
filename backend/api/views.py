@@ -1,13 +1,17 @@
 from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from django.http import JsonResponse
 import base64
-from .utils import get_rekognition_client, require_params, encode_token, decode_token
+from .utils import get_rekognition_client, require_params, authenticated, encode_token, decode_token
 from .models import Users
 
 @api_view(["GET"])
 def hello_world(request):
-    return Response({"message": "Hello World"})
+    return JsonResponse({"message": "Hello World"}, status=200)
+
+@api_view(["GET"])
+@authenticated
+def hello_world_with_token(request, user):
+    return JsonResponse({"message": "Hello World with token", "user": { "username": user.username, "is_admin": user.is_admin }}, status=200)
 
 @api_view(["POST"])
 @require_params('image', 'name')

@@ -5,6 +5,7 @@ from jwt import encode, decode
 # import datetime
 import os
 from dotenv import load_dotenv
+from .models import Users
 load_dotenv()
 
 
@@ -31,6 +32,29 @@ def require_params(*required_params):
             return view_func(request, *args, **kwargs)
         return _wrapped_view
     return decorator
+
+
+def authenticated(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        token = request.META.get('HTTP_AUTHORIZATION')
+        if not token:
+            return JsonResponse({"error": "Token not provided"}, status=401)
+
+        try:
+            decoded_token = decode_token(token)
+            # search for the user in the database for face_id
+            if not decoded_token:
+                return JsonResponse({"error": "Invalid token"}, status=401)
+
+            user = Users.objects.filter(face_id=decoded_token['face_id']).first()
+            if not user:
+                return JsonResponse({"error": "User not found"}, status=401)
+
+            return view_func(request, user=user, *args, **kwargs)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=401)
+    return _wrapped_view
 
 
 def encode_token(data):
