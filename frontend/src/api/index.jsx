@@ -24,6 +24,7 @@ const api = {
   hello_world_with_token: () => request.get('/hello_world_with_token'),
   login: (data) => request.post('/login', data),
   register: (data) => request.post('/register', data),
+  logout: () => request.post('/logout'),
 };
 
 export default api;

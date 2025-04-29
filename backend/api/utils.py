@@ -2,10 +2,9 @@ from functools import wraps
 from django.http import JsonResponse
 import boto3
 from jwt import encode, decode
-# import datetime
+from .models import Users, Token
 import os
 from dotenv import load_dotenv
-from .models import Users
 load_dotenv()
 
 
@@ -13,9 +12,9 @@ def get_rekognition_client():
     return boto3.client(
         'rekognition',
         region_name=os.getenv('AWS_REGION'),
-        aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-        aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-        aws_session_token=os.getenv('AWS_SESSION_TOKEN')
+        aws_access_key_id=os.getenv('aws_access_key_id'),
+        aws_secret_access_key=os.getenv('aws_secret_access_key'),
+        aws_session_token=os.getenv('aws_session_token')
     )
 
 
@@ -47,11 +46,14 @@ def authenticated(view_func):
             if not decoded_token:
                 return JsonResponse({"error": "Invalid token"}, status=401)
 
-            user = Users.objects.filter(face_id=decoded_token['face_id']).first()
+            user = Users.objects.filter(username=decoded_token['username']).first()
             if not user:
                 return JsonResponse({"error": "User not found"}, status=401)
 
-            return view_func(request, user=user, *args, **kwargs)
+            if not Token.objects.filter(user=user, token=token, is_valid=True).exists():
+                return JsonResponse({"error": "Token is inactive or logged out"}, status=401)
+
+            return view_func(request, user=user, token=token, *args, **kwargs)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=401)
     return _wrapped_view
@@ -61,9 +63,7 @@ def encode_token(data):
     """
     Generate a JWT token for the given user.
     """
-
     token = encode(data, os.getenv('JWT_SECRET_KEY'), algorithm='HS256')
-    # exp = datetime.datetime.utcnow() + datetime.timedelta(days=1)
     return token
 
 def decode_token(token):

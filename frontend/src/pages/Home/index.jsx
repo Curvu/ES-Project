@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import reactLogo from 'assets/react.svg'
 import viteLogo from '/vite.svg'
 import { Button } from 'components/Button'
@@ -7,20 +7,15 @@ import { useRequest } from 'hooks/useRequest'
 import api from 'api'
 
 function Home() {
-  const { doRequest: doRequestWithToken } = useRequest(api.hello_world_with_token, {
-    onSuccess: (res) => console.log('res_wt', res),
-    onError: (err) => console.log('err_wt', err)
-  })
-  const { doRequest } = useRequest(api.hello_world, {
-    onSuccess: (res) => console.log('res', res),
+  const navigate = useNavigate()
+
+  const { doRequest: logout } = useRequest(api.logout, {
+    onSuccess: () => {
+      localStorage.removeItem('token');
+      navigate('/login');
+    },
     onError: (err) => console.log('err', err)
   })
-
-  useEffect(() => {
-    doRequest()
-    doRequestWithToken()
-    // eslint-disable-next-line
-  }, [])
 
   return (
     <>
@@ -41,8 +36,8 @@ function Home() {
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more
       </p>
-      <Button onClick={() => localStorage.removeItem('token')}>
-        Clear token
+      <Button onClick={logout}>
+        Logout
       </Button>
     </>
   )
