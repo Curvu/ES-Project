@@ -7,8 +7,8 @@ const getAxiosInstance = (type) => {
   });
 
   axiosInstance.interceptors.request.use((config) => {
-    // const token = localStorage.getItem('token');
-    // config.headers.Authorization = `${token}`;
+    const token = localStorage.getItem('token');
+    config.headers.Authorization = `${token}`;
     config.headers['Content-Type'] =
       type === 'json' ? 'application/json' : 'multipart/form-data';
     return config;
@@ -19,7 +19,11 @@ const getAxiosInstance = (type) => {
 
 const request = getAxiosInstance('json');
 
-export const api = {
+const api = {
+  hello_world: () => request.get('/hello_world'),
+  hello_world_with_token: () => request.get('/hello_world_with_token'),
   login: (data) => request.post('/login', data),
   register: (data) => request.post('/register', data),
 };
+
+export default api;

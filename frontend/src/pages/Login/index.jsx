@@ -1,25 +1,25 @@
 import React, { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Webcam from 'react-webcam';
+import { Button } from 'components/Button';
+import { useRequest } from 'hooks/useRequest';
+import api from 'api';
 import styles from './login.module.css';
-import { api } from 'api';
 
 const Login = () => {
+  const navigate = useNavigate();
   const webcamRef = useRef(null);
 
-  const capture = async () => {
-    const imageSrc = webcamRef.current.getScreenshot();
-    console.log(imageSrc);
+  const capture = async () => await api.login({ image: webcamRef.current.getScreenshot() })
 
-    api.login({ image: imageSrc })
-      .then((response) => {
-        console.log('Login successful:', response.data);
-        // Handle successful login (e.g., redirect to another page)
-      })
-      .catch((error) => {
-        console.error('Login failed:', error);
-        // Handle login failure (e.g., show an error message)
-      });
-  };
+  const { doRequest, isLoading } = useRequest(capture, {
+    onSuccess: ({ data }) => {
+      console.log('Login successful:', data);
+      localStorage.setItem('token', data.token);
+      navigate('/');
+    },
+    onError: (error) => console.error('Login failed:', error),
+  });
 
   return (
     <div className={styles.container}>
@@ -28,7 +28,9 @@ const Login = () => {
         ref={webcamRef}
         screenshotFormat="image/jpeg"
       />
-      <button onClick={capture}>Login</button>
+      <Button onClick={doRequest} isLoading={isLoading}>
+        Login
+      </Button>
     </div>
   );
 };
