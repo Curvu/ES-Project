@@ -1,24 +1,10 @@
-import { useNavigate } from 'react-router-dom'
 import reactLogo from 'assets/react.svg'
 import viteLogo from '/vite.svg'
-import { Button } from 'components/Button'
-import './home.css'
-import { useRequest } from 'hooks/useRequest'
-import api from 'api'
+import styles from './home.module.css'
 
 function Home() {
-  const navigate = useNavigate()
-
-  const { doRequest: logout } = useRequest(api.logout, {
-    onSuccess: () => {
-      localStorage.removeItem('token');
-      navigate('/login');
-    },
-    onError: (err) => console.log('err', err)
-  })
-
   return (
-    <>
+    <main className={styles.home}>
       <div>
         <a href="https://vite.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />
@@ -36,10 +22,7 @@ function Home() {
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more
       </p>
-      <Button onClick={logout}>
-        Logout
-      </Button>
-    </>
+    </main>
   )
 }
 

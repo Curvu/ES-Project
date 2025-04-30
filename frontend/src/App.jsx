@@ -2,6 +2,8 @@ import { BrowserRouter, Route, Routes, Navigate, Outlet } from 'react-router-dom
 import React from 'react';
 import Home from 'pages/Home';
 import Sign from 'pages/Sign';
+import { Skeleton } from 'components/Skeleton';
+import { Navbar } from 'components/Navbar';
 
 const isLoggedIn = () => !!localStorage.getItem('token');
 
@@ -18,7 +20,14 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<PrivateRoutes />}>
-          <Route path='/' element={<Home />} />
+          <Route element={
+            <Skeleton>
+              <Navbar />
+              <Outlet />
+            </Skeleton>
+          }>
+            <Route path='/' element={<Home />} />
+          </Route>
         </Route>
         <Route element={<PublicRoutes />}>
           <Route path='/sign' element={<Sign />} />
