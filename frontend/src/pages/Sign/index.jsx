@@ -5,6 +5,7 @@ import api from 'api';
 import { useRequest } from 'hooks/useRequest';
 import { Button } from 'components/Button';
 import styles from './sign.module.css';
+import { useUser } from 'context/UserContext';
 
 const Sign = () => {
   const navigate = useNavigate();
@@ -14,6 +15,8 @@ const Sign = () => {
   const [image, setImage] = useState(null);
   const [images, setImages] = useState([]);
 
+  const { login } = useUser();
+
   const loginReq = async () =>  await api.login({ image });
   const registerReq = async () => await api.register({ name, images });
 
@@ -21,6 +24,7 @@ const Sign = () => {
     async () => isLogin ? loginReq() : registerReq(), {
       onSuccess: ({ data }) => {
         localStorage.setItem('token', data.token);
+        login(data.user);
         navigate('/');
       },
       onError: (err) => console.error('Sign failed:', err),

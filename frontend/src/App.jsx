@@ -11,7 +11,7 @@ const PrivateRoutes = () => {
   return isLoggedIn() ? <Outlet /> : <Navigate to='/sign' replace />;
 };
 
-const PublicRoutes = () => {
+const LoggedOutRoutes = () => {
   return isLoggedIn() ? <Navigate to='/' replace /> : <Outlet />;
 };
 
@@ -19,18 +19,22 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<PrivateRoutes />}>
-          <Route element={
-            <Skeleton>
-              <Navbar />
-              <Outlet />
-            </Skeleton>
-          }>
-            <Route path='/' element={<Home />} />
+        <Route path='*' element={<Navigate to='/' replace />} />
+        <Route element={
+          <Skeleton>
+            <Navbar />
+            <Outlet />
+          </Skeleton>
+        }>
+          <Route path='/' element={<Home />} />
+
+          <Route element={<PrivateRoutes />}>
+
           </Route>
-        </Route>
-        <Route element={<PublicRoutes />}>
-          <Route path='/sign' element={<Sign />} />
+
+          <Route element={<LoggedOutRoutes />}>
+            <Route path='/sign' element={<Sign />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

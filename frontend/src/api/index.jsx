@@ -21,7 +21,7 @@ const request = getAxiosInstance('json');
 
 const api = {
   hello_world: () => request.get('/hello_world'),
-  hello_world_with_token: () => request.get('/hello_world_with_token'),
+  getUser: () => request.get('/user'),
   login: (data) => request.post('/login', data),
   register: (data) => request.post('/register', data),
   logout: () => request.post('/logout'),

@@ -8,11 +8,6 @@ from .models import Users, Token
 def hello_world(request):
     return JsonResponse({"message": "Hello World"}, status=200)
 
-@api_view(["GET"])
-@authenticated
-def hello_world_with_token(request, user):
-    return JsonResponse({"message": "Hello World with token", "user": { "username": user.username, "is_admin": user.is_admin }}, status=200)
-
 @api_view(["POST"])
 @require_params('images', 'name')
 def register(request):
@@ -48,10 +43,10 @@ def register(request):
         if successful_indices > 0:
             user = Users.objects.create(username=name, is_admin=False)
             user.save()
-
-            token = encode_token({'username': name, 'is_admin': False})
+            user_data = {'username': name, 'is_admin': False}
+            token = encode_token(user_data)
             Token.objects.create(user=user, token=token)
-            return JsonResponse({'token': token}, status=200)
+            return JsonResponse({'token': token, 'user': user_data}, status=200)
 
         return JsonResponse({'error': 'No face indexed'}, status=500)
     except Exception as e:
@@ -79,9 +74,10 @@ def login(request):
         if 'FaceMatches' in response and len(response['FaceMatches']) > 0:
             face_match = response['FaceMatches'][0]
             user = Users.objects.filter(username=face_match['Face']['ExternalImageId']).first()
-            token = encode_token({'username': user.username, 'is_admin': user.is_admin})
+            user_data = {'username': user.username, 'is_admin': user.is_admin}
+            token = encode_token(user_data)
             Token.objects.create(user=user, token=token)
-            return JsonResponse({'token': token}, status=200)
+            return JsonResponse({'token': token, 'user': user_data}, status=200)
         return JsonResponse({'error': 'No face match found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
