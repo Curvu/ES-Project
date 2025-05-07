@@ -15,41 +15,39 @@ export const Navbar = () => {
 
   const { doRequest: doLogout } = useRequest(api.logout, {
     onSuccess: () => {
-      localStorage.removeItem('token');
       logout();
-      navigate('/login');
+      localStorage.removeItem('token');
+      navigate('/sign');
     },
     onError: (err) => console.log('err', err)
   })
 
   return (
     <nav className={styles.navbar}>
-      <div className={styles.topbar}>
-        <h1 className={styles.title}>PrimeTech Repairs</h1>
-        <ul className={styles.links}>
-          <Link to='/' className={styles.link}>
-            <FaHome />
-            <span>Home</span>
-          </Link>
-          <Link to='/book-a-repair' className={styles.link}>
-            <FaTools />
-            <span>Book a Repair</span>
-          </Link>
-          <Link to='/my-repairs' className={styles.link}>
-            <FaBoxOpen />
-            <span>My Repairs</span>
-          </Link>
-        </ul>
-      </div>
-      <div className={styles.bottom}>
+      <Link to='/' className={styles.title}>
+        <span>PrimeTech</span>
+        <span>Repairs</span>
+      </Link>
+      <ul className={styles.links}>
+        <Link to='/' className={styles.link}>
+          <FaHome />
+          <span>Home</span>
+        </Link>
+        <Link to='/book-a-repair' className={styles.link}>
+          <FaTools />
+          <span>Book a Repair</span>
+        </Link>
+        <Link to='/my-repairs' className={styles.link}>
+          <FaBoxOpen />
+          <span>My Repairs</span>
+        </Link>
+      </ul>
+      <div>
         {user ? (
-          <>
+          <Button onClick={doLogout}>
             <span>{user.username}</span>
-            <Button onClick={doLogout}>
-              <IoLogOutOutline />
-              <span>Log Out</span>
-            </Button>
-          </>
+            <IoLogOutOutline />
+          </Button>
         ) : (
           <Link to='/sign' className={styles.link}>
             <IoLogInOutline />

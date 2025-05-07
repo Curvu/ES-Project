@@ -1,9 +1,47 @@
 .home {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* justify-content: center; */
   align-items: center;
   gap: 2rem;
 
   width: 100%;
+  height: 100%;
+
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+
+    width: 100%;
+    height: 100%;
+
+    padding: 2rem;
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 600;
+    }
+
+    ul {
+      display: flex;
+      flex-direction: row;
+      gap: 2rem;
+
+      .card {
+        width: 20rem;
+
+        >p {
+          margin-bottom: 1rem;
+        }
+
+        .bot {
+          display: flex;
+          gap: 2rem;
+          justify-content: space-between;
+          align-items: center;
+        }
+      }
+    }
+  }
 }

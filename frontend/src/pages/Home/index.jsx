@@ -1,27 +1,23 @@
-import reactLogo from 'assets/react.svg'
-import viteLogo from '/vite.svg'
+import { Button } from 'components/Button'
 import styles from './home.module.css'
+import { Card } from 'components/Card'
 
 function Home() {
   return (
     <main className={styles.home}>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <section>
+        <h2>Services</h2>
+        <ul>
+          <Card className={styles.card}>
+            <h3>Service 1</h3>
+            <p>Description of Service 1</p>
+            <div className={styles.bot}>
+              <span className={styles.price}>100€</span>
+              <Button onClick={() => alert('Service 1 clicked!')}>Schedule</Button>
+            </div>
+          </Card>
+        </ul>
+      </section>
     </main>
   )
 }

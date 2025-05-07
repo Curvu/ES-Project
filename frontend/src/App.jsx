@@ -29,7 +29,6 @@ function App() {
           <Route path='/' element={<Home />} />
 
           <Route element={<PrivateRoutes />}>
-
           </Route>
 
           <Route element={<LoggedOutRoutes />}>
