@@ -66,6 +66,7 @@ const Sign = () => {
           audio={false}
           ref={webcamRef}
           screenshotFormat="image/jpeg"
+          mirrored={true}
         />
         <button className={styles.captureButton} onClick={handleCapture}>
           <div className={styles.captureCircle}></div>
