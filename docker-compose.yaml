@@ -1,4 +1,15 @@
 services:
+  database:
+    image: postgres
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: database
+    ports:
+      - 5432:5432
+
   backend:
     build:
       context: backend/.
@@ -16,6 +27,8 @@ services:
         - path: ./backend
           target: /app
           action: sync+restart
+    depends_on:
+      - database
 
   frontend:
     image: oven/bun:1
@@ -25,3 +38,6 @@ services:
       - ./frontend:/app
     ports:
       - 3000:3000
+
+volumes:
+  postgres:
