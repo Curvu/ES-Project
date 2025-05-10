@@ -22,7 +22,7 @@ const Sign = () => {
 
   const { doRequest: doSign, isLoading: isSigning } = useRequest(
     async () => isLogin ? loginReq() : registerReq(), {
-      onSuccess: ({ data }) => {
+      onSuccess: (data) => {
         localStorage.setItem('token', data.token);
         login(data.user);
         navigate('/');
@@ -66,7 +66,7 @@ const Sign = () => {
           audio={false}
           ref={webcamRef}
           screenshotFormat="image/jpeg"
-          mirrored={true}
+          mirrored
         />
         <button className={styles.captureButton} onClick={handleCapture}>
           <div className={styles.captureCircle}></div>

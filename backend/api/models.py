@@ -25,7 +25,7 @@ class Service(models.Model):
         REPAIRING = 2, "Repairing"
         WAITING_FOR_PICKUP = 3, "Waiting for Pickup"
         FINISHED = 4, "Finished"
-        CANCELLED = 5, "Cancelled"
+        CANCELLED = -1, "Cancelled"
 
     class Types(models.IntegerChoices):
         SCREEN_REPLACEMENT = 1, "Screen Replacement"
@@ -93,6 +93,16 @@ class Service(models.Model):
 
         service.save()
         return service
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "schedule_time": self.schedule_time,
+            "service_type": self.Types(self.service_type).label,
+            "service_state": self.service_state,
+            "paid": self.paid,
+            "delivered": self.delivered,
+        }
 
     #! Mudar isto para o DynamoDB !#
 

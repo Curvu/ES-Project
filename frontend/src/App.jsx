@@ -2,6 +2,8 @@ import { BrowserRouter, Route, Routes, Navigate, Outlet } from 'react-router-dom
 import React from 'react';
 import Home from 'pages/Home';
 import Sign from 'pages/Sign';
+import Service from 'pages/Service';
+import Bookings from 'pages/Bookings';
 import { Skeleton } from 'components/Skeleton';
 import { Navbar } from 'components/Navbar';
 
@@ -29,6 +31,8 @@ function App() {
           <Route path='/' element={<Home />} />
 
           <Route element={<PrivateRoutes />}>
+            <Route path='/book/:service' element={<Service />} />
+            <Route path='/my-bookings' element={<Bookings />} />
           </Route>
 
           <Route element={<LoggedOutRoutes />}>

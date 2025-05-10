@@ -10,7 +10,7 @@ export const useRequest = (requestFunc, options) => {
     setLoading(true);
 
     requestFunc(...params)
-      .then((data) => {
+      .then(({ data }) => {
         setData(data);
         options?.onSuccess?.(data);
       })

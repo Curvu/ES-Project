@@ -20,11 +20,15 @@ const getAxiosInstance = (type) => {
 const request = getAxiosInstance('json');
 
 const api = {
-  hello_world: () => request.get('/hello_world'),
   getUser: () => request.get('/user'),
-  login: (data) => request.post('/login', data),
-  register: (data) => request.post('/register', data),
+  login: (data) => request.post('/force_login', data),
+  register: (data) => request.post('/force_register', data),
   logout: () => request.post('/logout'),
+
+  getServices: () => request.get('/services'),
+  getService: (id) => request.get(`/services/${id}`),
+  bookService: (data) => request.post('/book-service', data),
+  getBookings: () => request.get('/bookings'),
 };
 
 export default api;

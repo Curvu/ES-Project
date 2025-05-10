@@ -37,9 +37,9 @@ export const Navbar = () => {
           <FaTools />
           <span>Book a Repair</span>
         </Link>
-        <Link to='/my-repairs' className={styles.link}>
+        <Link to='/my-bookings' className={styles.link}>
           <FaBoxOpen />
-          <span>My Repairs</span>
+          <span>My Bookings</span>
         </Link>
       </ul>
       <div>

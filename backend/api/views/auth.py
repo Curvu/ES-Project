@@ -1,12 +1,42 @@
 from rest_framework.decorators import api_view
 from django.http import JsonResponse
 import base64
-from .utils import get_rekognition_client, require_params, authenticated, encode_token, decode_token
-from .models import Users, Token
+from ..utils import get_rekognition_client, require_params, authenticated, encode_token
+from ..models import Users, Token
 
-@api_view(["GET"])
-def hello_world(request):
-    return JsonResponse({"message": "Hello World"}, status=200)
+@api_view(["POST"])
+@require_params('images', 'name')
+def force_register(request):
+    try:
+        name = request.data.get('name')
+        images = request.data.get('images')
+
+        if Users.objects.filter(username=name).exists():
+            return JsonResponse({'error': 'User already exists'}, status=400)
+
+        if not isinstance(images, list):
+            return JsonResponse({'error': 'Images must be provided as a list'}, status=400)
+
+        user = Users.objects.create(username=name, is_admin=False)
+        user.save()
+        user_data = {'username': name, 'is_admin': False}
+        token = encode_token(user_data)
+        Token.objects.create(user=user, token=token)
+        return JsonResponse({'token': token, 'user': user_data}, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@api_view(["POST"])
+def force_login(request):
+    try:
+        user = Users.objects.filter(username='Filipe').first()
+        user_data = {'username': user.username, 'is_admin': user.is_admin}
+        token = encode_token(user_data)
+        Token.objects.create(user=user, token=token)
+        return JsonResponse({'token': token, 'user': user_data}, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
 
 @api_view(["POST"])
 @require_params('images', 'name')
