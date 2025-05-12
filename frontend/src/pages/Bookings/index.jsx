@@ -23,8 +23,8 @@ function Bookings() {
 
       {data?.bookings?.map((booking) => (
         <Card key={booking.id} className={styles.booking}>
-          <h3>{booking.service_type}</h3>
-          <ProgressBar labels={['Scheduled', 'Repairing', 'Waiting for Pickup', 'Finished']} currentIndex={booking.service_state} />
+          <h3>{booking.type}</h3>
+          <ProgressBar labels={['Scheduled', 'Repairing', 'Waiting for Pickup', 'Finished']} currentIndex={parseInt(booking.state)} />
 
           {/* TODO: if service_state > 1 then show pay button, also change card if state is -1 */}
         </Card>

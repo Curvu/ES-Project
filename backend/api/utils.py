@@ -2,13 +2,14 @@ from functools import wraps
 from django.http import JsonResponse
 import boto3
 from jwt import encode, decode
-from .models import Users, Token
+from .models import User, Token
 import os
 from dotenv import load_dotenv
 load_dotenv()
 
+IS_LOCAL = os.getenv('IS_LOCAL', 'false') == 'true'
 
-def get_rekognition_client():
+def get_rekognition_client() -> boto3.client:
     return boto3.client(
         'rekognition',
         region_name=os.getenv('AWS_REGION'),
@@ -16,6 +17,24 @@ def get_rekognition_client():
         aws_secret_access_key=os.getenv('aws_secret_access_key'),
         aws_session_token=os.getenv('aws_session_token')
     )
+
+def get_stepfunctions_client() -> boto3.client:
+    if IS_LOCAL:
+        return boto3.client(
+            'stepfunctions',
+            region_name='us-east-1',
+            endpoint_url='http://localstack:4566',
+            aws_access_key_id='test',
+            aws_secret_access_key='test'
+        )
+    else:
+        return boto3.client(
+            'stepfunctions',
+            region_name=os.getenv('AWS_REGION'),
+            aws_access_key_id=os.getenv('aws_access_key_id'),
+            aws_secret_access_key=os.getenv('aws_secret_access_key'),
+            aws_session_token=os.getenv('aws_session_token')
+        )
 
 
 def require_params(*required_params):
@@ -46,7 +65,7 @@ def authenticated(view_func):
             if not decoded_token:
                 return JsonResponse({"error": "Invalid token"}, status=401)
 
-            user = Users.objects.filter(username=decoded_token['username']).first()
+            user = User.objects.filter(username=decoded_token['username']).first()
             if not user:
                 return JsonResponse({"error": "User not found"}, status=401)
 

@@ -2,8 +2,9 @@ from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 import uuid
+from .dynamodb import *
 
-class Users(models.Model):
+class User(models.Model):
     username = models.CharField(max_length=255, unique=True)
     is_admin = models.BooleanField(default=False)
 
@@ -11,7 +12,7 @@ class Users(models.Model):
         return self.username
 
 class Token(models.Model):
-    user = models.ForeignKey(Users, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     token = models.TextField()
     created_at = models.DateTimeField(default=timezone.now)
     is_valid = models.BooleanField(default=True)
@@ -43,18 +44,23 @@ class Service(models.Model):
     }
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(Users, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     schedule_time = models.DateTimeField()
-    service_type = models.IntegerField(choices=Types.choices)
+    type = models.IntegerField(choices=Types.choices)
 
     @classmethod
-    def user_can_book(cls, user, service_type=None):
-        # if user doesn't have a booking for the same service type that is not finished
-        return not cls.objects.filter(
-            user=user,
-            service_state__lt=cls.States.FINISHED,
-            service_type=service_type,
-        ).exists()
+    def user_can_book(cls, user, type=None):
+        services = cls.objects.filter(user=user, type=type)
+
+        for service in services:
+            status = get_status(service.id)
+            if not status:
+                return False
+            status = status.get("service_state", 0)
+            if status < cls.States.FINISHED and status != cls.States.CANCELLED:
+                return False
+
+        return True
 
     @classmethod
     def get_all_service_prices(cls, user=None):
@@ -76,40 +82,28 @@ class Service(models.Model):
         ).exists()
 
     @classmethod
-    def book_service(cls, user, service_type, datetime):
-        if cls.is_time_slot_booked(datetime):
+    def book_service(cls, user, type, datetime):
+        if (cls.is_time_slot_booked(datetime) or
+            not cls.user_can_book(user, type) or
+            datetime < timezone.now()):
             return 0
-        if not cls.user_can_book(user, service_type):
-            return -1
-        if datetime < timezone.now():
-            return -2
 
         service = cls(
             user=user,
-            service_type=service_type,
-            schedule_time=datetime,
-            service_state=cls.States.SCHEDULED,
+            type=type,
+            schedule_time=datetime
         )
 
         service.save()
         return service
 
     def to_dict(self):
+        status = get_status(self.id) or {}
         return {
             "id": self.id,
             "schedule_time": self.schedule_time,
-            "service_type": self.Types(self.service_type).label,
-            "service_state": self.service_state,
-            "paid": self.paid,
-            "delivered": self.delivered,
+            "type": self.Types(self.type).label,
+            "state": status.get("service_state"),
+            "paid": status.get("paid"),
+            "delivered": status.get("delivered"),
         }
-
-    #! Mudar isto para o DynamoDB !#
-
-    service_state = models.IntegerField(
-        choices=States.choices,
-        default=States.SCHEDULED,
-    )
-
-    paid = models.BooleanField(default=False) # Can pay if State >= 2
-    delivered = models.BooleanField(default=False)

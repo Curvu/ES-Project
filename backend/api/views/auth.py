@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view
 from django.http import JsonResponse
 import base64
 from ..utils import get_rekognition_client, require_params, authenticated, encode_token
-from ..models import Users, Token
+from ..models import User, Token
 
 @api_view(["POST"])
 @require_params('images', 'name')
@@ -11,13 +11,13 @@ def force_register(request):
         name = request.data.get('name')
         images = request.data.get('images')
 
-        if Users.objects.filter(username=name).exists():
+        if User.objects.filter(username=name).exists():
             return JsonResponse({'error': 'User already exists'}, status=400)
 
         if not isinstance(images, list):
             return JsonResponse({'error': 'Images must be provided as a list'}, status=400)
 
-        user = Users.objects.create(username=name, is_admin=False)
+        user = User.objects.create(username=name, is_admin=False)
         user.save()
         user_data = {'username': name, 'is_admin': False}
         token = encode_token(user_data)
@@ -29,7 +29,7 @@ def force_register(request):
 @api_view(["POST"])
 def force_login(request):
     try:
-        user = Users.objects.filter(username='Filipe').first()
+        user = User.objects.filter(username='Filipe').first()
         user_data = {'username': user.username, 'is_admin': user.is_admin}
         token = encode_token(user_data)
         Token.objects.create(user=user, token=token)
@@ -45,7 +45,7 @@ def register(request):
         name = request.data.get('name')
         images = request.data.get('images')
 
-        if Users.objects.filter(username=name).exists():
+        if User.objects.filter(username=name).exists():
             return JsonResponse({'error': 'User already exists'}, status=400)
 
         if not isinstance(images, list):
@@ -53,7 +53,7 @@ def register(request):
 
         rekognition = get_rekognition_client()
         successful_indices = 0
-        # Users.objects.all().delete() # Uncomment to delete all users
+        # User.objects.all().delete() # Uncomment to delete all users
         # rekognition.delete_collection(CollectionId='my_collection') # Uncomment to delete the collection
         # rekognition.create_collection(CollectionId='my_collection') # Only run once to create the collection
 
@@ -71,7 +71,7 @@ def register(request):
                 successful_indices += 1
 
         if successful_indices > 0:
-            user = Users.objects.create(username=name, is_admin=False)
+            user = User.objects.create(username=name, is_admin=False)
             user.save()
             user_data = {'username': name, 'is_admin': False}
             token = encode_token(user_data)
@@ -103,7 +103,7 @@ def login(request):
         #* Check if a face match was found
         if 'FaceMatches' in response and len(response['FaceMatches']) > 0:
             face_match = response['FaceMatches'][0]
-            user = Users.objects.filter(username=face_match['Face']['ExternalImageId']).first()
+            user = User.objects.filter(username=face_match['Face']['ExternalImageId']).first()
             user_data = {'username': user.username, 'is_admin': user.is_admin}
             token = encode_token(user_data)
             Token.objects.create(user=user, token=token)
@@ -122,3 +122,13 @@ def logout(request, user, token):
         token_obj.save()
         return JsonResponse({'message': 'Logged out successfully'}, status=200)
     return JsonResponse({'error': 'Token already inactive or invalid'}, status=400)
+
+
+@api_view(["POST"])
+def create_collection(request):
+    try:
+        rekognition = get_rekognition_client()
+        response = rekognition.create_collection(CollectionId='my_collection')
+        return JsonResponse({'message': 'Collection created successfully', 'response': response}, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

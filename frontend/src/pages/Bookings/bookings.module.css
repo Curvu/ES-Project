@@ -7,5 +7,6 @@
 
   .booking {
     justify-content: start;
+    gap: 1rem;
   }
 }

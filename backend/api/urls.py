@@ -25,6 +25,7 @@ urlpatterns = [
     path('login', login),
     path('logout', logout),
     path('register', register),
+    path('create_collection', create_collection),
 
     path('services', get_all_services),
     path('services/<int:service_id>', get_service),

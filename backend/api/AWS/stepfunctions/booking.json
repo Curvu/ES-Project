@@ -1,0 +1,55 @@
+{
+  "Comment": "BookingWorkflow",
+  "StartAt": "BookService",
+  "States": {
+    "BookService": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:000000000000:function:bookService",
+      "ResultPath": "$.book_result",
+      "Next": "Booked"
+    },
+    "Booked": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.failed",
+          "BooleanEquals": true,
+          "Next": "Fail"
+        }
+      ],
+      "Default": "Wait"
+    },
+    "Wait": {
+      "Type": "Wait",
+      "Seconds": 60,
+      "Next": "StateChanged"
+    },
+    "StateChanged": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:000000000000:function:decideNextStep",
+      "Parameters": {
+        "service_id.$": "$.service_id",
+        "schedule_time.$": "$.schedule_time"
+      },
+      "ResultPath": "$.recheck",
+      "Next": "Evaluate"
+    },
+    "Evaluate": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.recheck",
+          "BooleanEquals": true,
+          "Next": "Wait"
+        }
+      ],
+      "Default": "Finish"
+    },
+    "Finish": {
+      "Type": "Succeed"
+    },
+    "Fail": {
+      "Type": "Fail"
+    }
+  }
+}

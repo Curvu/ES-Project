@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 
 import { Button } from 'components/Button'
@@ -12,6 +12,7 @@ import styles from './service.module.css'
 function Service() {
   const location = useLocation()
   const pathname = location.pathname.split('/')[2]
+  const navigate = useNavigate()
 
   const getNextHour = () => {
     const now = new Date();
@@ -23,7 +24,9 @@ function Service() {
 
   const { doRequest: getService, data, setData } = useRequest(api.getService);
 
-  const { doRequest: bookService } = useRequest(api.bookService);
+  const { doRequest: bookService, isLoading } = useRequest(api.bookService, {
+    onSuccess: () => navigate('/my-bookings')
+  });
 
   useEffect(() => {
     if (!location.state?.service) getService(pathname);
@@ -39,9 +42,13 @@ function Service() {
     const normalized = new Date(datetime)
     normalized.setMinutes(0, 0, 0);
 
+    const in1min = new Date();
+    in1min.setMinutes(in1min.getMinutes() + 1);
+
     const booking = {
       service_id: data.id,
-      datetime: normalized.toISOString(),
+      // datetime: normalized.toISOString(),
+      datetime: in1min.toISOString(), // this is for testing
     }
     console.log(booking)
 
@@ -63,7 +70,7 @@ function Service() {
           timeCaption="Hour"
           minDate={new Date()}
         />
-        <Button className={styles.button} onClick={onSubmit} disabled={!data?.can_book}>
+        <Button className={styles.button} onClick={onSubmit} disabled={!data?.can_book || isLoading}>
           Book
         </Button>
       </form>

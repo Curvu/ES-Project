@@ -82,19 +82,31 @@ WSGI_APPLICATION = 'api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'USER': os.getenv('DB_USER'),
-        'PORT': os.getenv('DB_PORT'),
-        # 'NAME': os.getenv('DB_NAME'),
-        # 'PASSWORD': os.getenv('DB_PASSWORD'),
-        # 'HOST': os.getenv('DB_HOST'),
-        'NAME': 'database',
-        'PASSWORD': 'postgres',
-        'HOST': 'database',
-    },
-}
+IS_LOCAL = os.getenv('IS_LOCAL', 'false') == 'true'
+
+if IS_LOCAL:
+    # Use SQLite for local development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'database',
+            'USER': 'postgres',
+            'PASSWORD': 'postgres',
+            'HOST': 'database',
+            'PORT': 5432,
+        },
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME'),
+            'USER': os.getenv('DB_USER'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'PORT': os.getenv('DB_PORT'),
+        },
+    }
 
 
 # Password validation

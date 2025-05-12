@@ -21,11 +21,18 @@
     background-color: #eee;
     color: #333;
     border: 2px solid #bbb;
+    flex-shrink: 0;
   }
 
   &.current .index,
   &.active .index {
     border-color: #4caf50;
+  }
+
+  &.error .index {
+    background-color: #DA344D;
+    border-color: #DA344D;
+    color: #fff;
   }
 
   &.active .index {
@@ -34,9 +41,14 @@
   }
 
   .label {
-    margin-top: 4px;
+    margin-top: 2px;
     font-size: 12px;
     text-align: center;
+    white-space: normal;
+    word-wrap: break-word;
+    width: 56px;
+    height: 28px;
+    line-height: 1.2;
   }
 }
 
@@ -44,6 +56,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-bottom: 10px;
 
   .line {
     background-color: #ccc;

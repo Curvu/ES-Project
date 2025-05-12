@@ -1,8 +1,10 @@
 from rest_framework.decorators import api_view
 from django.http import JsonResponse
-from ..utils import require_params, authenticated
+from ..utils import require_params, authenticated, get_stepfunctions_client
 from ..models import Service
+from ..dynamodb import get_status
 from django.utils.dateparse import parse_datetime
+import json
 
 @api_view(["GET"])
 @authenticated
@@ -38,20 +40,28 @@ def book_service(request, user, token):
 
     booking = Service.book_service(
         user=user,
-        service_type=service_type,
+        type=service_type,
         datetime=parse_datetime(datetime),
     )
 
     if booking == 0:
-        return JsonResponse({"error": "Schedule already taken."}, status=400)
-    elif booking == -1:
-        return JsonResponse({"error": "User already has a booking for this service."}, status=400)
-    elif booking == -2:
-        return JsonResponse({"error": "Cannot book in the past."}, status=400)
-    elif not booking:
-        return JsonResponse({"error": "Failed to book service"}, status=500)
+        return JsonResponse({"error": "Error booking."}, status=400)
 
-    return JsonResponse({"message": "Service booked successfully"}, status=200)
+    try:
+        stepfunctions = get_stepfunctions_client()
+
+        stepfunctions.start_execution(
+            stateMachineArn='arn:aws:states:us-east-1:000000000000:stateMachine:BookingWorkflow',
+            input=json.dumps({
+                "service_id": str(booking.id),
+                "schedule_time": datetime,
+            })
+        )
+
+        return JsonResponse({"message": "Service booked successfully"}, status=200)
+    except Exception as e:
+        return JsonResponse({"error": "Failed to start step function", "details": str(e)}, status=500)
+
 
 @api_view(["GET"])
 @authenticated
