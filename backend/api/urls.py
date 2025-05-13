@@ -17,6 +17,7 @@ Including another URLconf
 from django.urls import path
 from .views.auth import *
 from .views.views import *
+from .views.admin import *
 
 urlpatterns = [
     path('force_register', force_register),
@@ -28,7 +29,11 @@ urlpatterns = [
     path('create_collection', create_collection),
 
     path('services', get_all_services),
-    path('services/<int:service_id>', get_service),
+    path('services/<int:service_type>', get_service),
+    path('pay-service/<str:service_id>', pay_service),
     path('book-service', book_service),
     path('bookings', get_bookings),
+
+    path('admin/bookings', admin_get_bookings),
+    path('admin/booking', admin_set_booking),
 ]

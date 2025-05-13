@@ -4,6 +4,7 @@ import Home from 'pages/Home';
 import Sign from 'pages/Sign';
 import Service from 'pages/Service';
 import Bookings from 'pages/Bookings';
+import Admin from 'pages/Admin';
 import { Skeleton } from 'components/Skeleton';
 import { Navbar } from 'components/Navbar';
 
@@ -29,6 +30,7 @@ function App() {
           </Skeleton>
         }>
           <Route path='/' element={<Home />} />
+          <Route path='/admin' element={<Admin />} />
 
           <Route element={<PrivateRoutes />}>
             <Route path='/book/:service' element={<Service />} />

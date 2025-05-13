@@ -1,0 +1,12 @@
+.bookings {
+  padding: 2rem 6rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  .booking {
+    justify-content: start;
+    gap: 1rem;
+  }
+}

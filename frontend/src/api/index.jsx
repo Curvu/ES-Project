@@ -29,6 +29,10 @@ const api = {
   getService: (id) => request.get(`/services/${id}`),
   bookService: (data) => request.post('/book-service', data),
   getBookings: () => request.get('/bookings'),
+  payService: (id) => request.post(`/pay-service/${id}`),
+
+  getAdminBookings: () => request.get('/admin/bookings'),
+  setBookingState: (data) => request.put('/admin/booking', data),
 };
 
 export default api;

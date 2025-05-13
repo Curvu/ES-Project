@@ -25,7 +25,8 @@ class Service(models.Model):
         SCHEDULED = 1, "Scheduled"
         REPAIRING = 2, "Repairing"
         WAITING_FOR_PICKUP = 3, "Waiting for Pickup"
-        FINISHED = 4, "Finished"
+        DELIVERED = 4, "Delivered"
+        FINISHED = 5, "Finished"
         CANCELLED = -1, "Cancelled"
 
     class Types(models.IntegerChoices):
@@ -59,8 +60,20 @@ class Service(models.Model):
             status = status.get("service_state", 0)
             if status < cls.States.FINISHED and status != cls.States.CANCELLED:
                 return False
-
         return True
+
+    @classmethod
+    def user_can_pay(cls, service_id, user):
+        status = get_status(service_id)
+        if not status:
+            return False
+
+        state = status.get("service_state", 0)
+        return (
+            state in [cls.States.REPAIRING, cls.States.WAITING_FOR_PICKUP]
+            and not status.get("paid", False)
+            and cls.objects.filter(user=user).exists()
+        )
 
     @classmethod
     def get_all_service_prices(cls, user=None):
@@ -68,7 +81,7 @@ class Service(models.Model):
             {
                 "id": t.value,
                 "name": t.label,
-                "price": cls.PRICES.get(t.value),
+                "price": cls.PRICES.get(t.value, 0),
                 "can_book": cls.user_can_book(user, t),
             }
             for t in cls.Types
@@ -96,6 +109,22 @@ class Service(models.Model):
 
         service.save()
         return service
+    
+    @classmethod
+    def pay_service(cls, service_id, user):
+        status = get_status(service_id)
+        if not status:
+            return False
+
+        state = status.get("service_state", 0)
+        if state not in [cls.States.REPAIRING, cls.States.WAITING_FOR_PICKUP]:
+            return False
+
+        if not cls.user_can_pay(service_id, user):
+            return False
+
+        update_status(service_id, "paid", True)
+        return True
 
     def to_dict(self):
         status = get_status(self.id) or {}
@@ -105,5 +134,6 @@ class Service(models.Model):
             "type": self.Types(self.type).label,
             "state": status.get("service_state"),
             "paid": status.get("paid"),
+            "can_pay": self.user_can_pay(self.id, self.user),
             "delivered": status.get("delivered"),
         }

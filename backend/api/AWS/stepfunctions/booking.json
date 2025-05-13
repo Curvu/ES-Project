@@ -31,7 +31,7 @@
         "service_id.$": "$.service_id",
         "schedule_time.$": "$.schedule_time"
       },
-      "ResultPath": "$.recheck",
+      "ResultPath": "$",
       "Next": "Evaluate"
     },
     "Evaluate": {

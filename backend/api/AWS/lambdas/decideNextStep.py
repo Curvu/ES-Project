@@ -14,12 +14,21 @@ def lambda_handler(event, context):
     )
 
     state = response['Item']['service_state']
+    paid = response['Item']['paid']
 
-    if state > 1:
+    if state == 4 and paid:
+        # update the state to 5 (completed)
+        service_status_table.update_item(
+            Key={'service_id': service_id},
+            UpdateExpression='SET service_state = :val',
+            ExpressionAttributeValues={
+                ':val': 5
+            }
+        )
         return { "recheck": False, "message": "Success" }
 
     # Check if the service is already passed
-    if schedule_time < datetime.now().isoformat():
+    if schedule_time < datetime.now().isoformat() and state == 1:
         service_status_table.update_item(
             Key={'service_id': service_id},
             UpdateExpression='SET service_state = :val',
@@ -29,4 +38,4 @@ def lambda_handler(event, context):
         )
         return { "recheck": False, "message": "Already passed" }
 
-    return { "recheck": True }
+    return { "recheck": True, "service_id": service_id, "schedule_time": schedule_time }

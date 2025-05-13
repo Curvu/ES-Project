@@ -13,16 +13,16 @@ def get_all_services(request, user, token):
 
 @api_view(["GET"])
 @authenticated
-def get_service(request, user, token, service_id):
+def get_service(request, user, token, service_type):
     try:
-        service_type = Service.Types(service_id)
+        service_type = Service.Types(service_type)
     except ValueError:
         return JsonResponse({"error": "Invalid service type ID"}, status=400)
 
     return JsonResponse({
-        "id": service_id,
+        "id": service_type,
         "name": service_type.label,
-        "price": Service.PRICES.get(service_id),
+        "price": Service.PRICES.get(service_type),
         "can_book": Service.user_can_book(user, service_type),
     })
 
@@ -68,3 +68,11 @@ def book_service(request, user, token):
 def get_bookings(request, user, token):
     services = Service.objects.filter(user=user)
     return JsonResponse({"bookings": [s.to_dict() for s in services]}, status=200)
+
+@api_view(["POST"])
+@authenticated
+def pay_service(request, user, token, service_id):
+    response = Service.pay_service(service_id, user)
+    if not response:
+        return JsonResponse({"error": "Error paying."}, status=400)
+    return JsonResponse({"message": "Service paid successfully"}, status=200)

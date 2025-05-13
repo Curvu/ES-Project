@@ -2,7 +2,9 @@
 
 # TODO
 - [ ] Urgent: criar toasty para alertas
-- [ ] MY BOOKINGS PAGE
+- admin panel
+  - mudar o estado de qualquer booking
+- payment
 
 # Duvidas
 - schedule automatico update? SIM

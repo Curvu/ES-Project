@@ -1,17 +1,14 @@
 import { useEffect } from 'react';
 
 import { useRequest } from 'hooks/useRequest';
-import { ProgressBar } from 'components/ProgressBar';
-import { Card } from 'components/Card';
-import { Button } from 'components/Button';
 import api from 'api'
 
 import styles from './bookings.module.css'
+import { ProgressBar } from 'components/ProgressBar';
+import { Card } from 'components/Card';
 
-function Bookings() {
-  const { doRequest: getBookings, data } = useRequest(api.getBookings);
-
-  const { doRequest: payService } = useRequest(api.payService);
+function Admin() {
+  const { doRequest: getBookings, data } = useRequest(api.getAdminBookings);
 
   useEffect(() => {
     getBookings();
@@ -22,24 +19,16 @@ function Bookings() {
 
   return (
     <main className={styles.bookings}>
-      <h1>Bookings</h1>
+      <h1>Admin Bookings</h1>
 
       {data?.bookings?.map((booking) => (
         <Card key={booking.id} className={styles.booking}>
-          <div>
-            <h3>{booking.type}</h3>
-            <Button
-              className={styles.button}
-              onClick={() => payService(booking.id)}
-              disabled={!booking?.can_pay}
-            >
-              Pay
-            </Button>
-            {booking.paid ? 'Paid' : 'Not Paid'}
-          </div>
+          <h3>{booking.type}</h3>
           <ProgressBar
             labels={['Scheduled', 'Repairing', 'Waiting for Pickup', 'Delivered']}
             currentIndex={parseInt(booking.state)}
+            clickable
+            booking={booking}
           />
 
           {/* TODO: if service_state > 1 then show pay button, also change card if state is -1 */}
@@ -49,4 +38,4 @@ function Bookings() {
   )
 }
 
-export default Bookings
+export default Admin
