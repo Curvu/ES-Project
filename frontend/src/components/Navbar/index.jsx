@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaHome, FaTools, FaBoxOpen } from 'react-icons/fa';
+import { FaHome, FaTools, FaBoxOpen, FaUserShield } from 'react-icons/fa';
 import { IoLogOutOutline, IoLogInOutline } from 'react-icons/io5';
 import { Button } from 'components/Button';
 import { useRequest } from 'hooks/useRequest';
@@ -33,14 +33,16 @@ export const Navbar = () => {
           <FaHome />
           <span>Home</span>
         </Link>
-        <Link to='/book-a-repair' className={styles.link}>
-          <FaTools />
-          <span>Book a Repair</span>
-        </Link>
         <Link to='/my-bookings' className={styles.link}>
           <FaBoxOpen />
           <span>My Bookings</span>
         </Link>
+        {user?.is_admin && (
+          <Link to='/admin' className={styles.link}>
+            <FaUserShield />
+            <span>Admin</span>
+          </Link>
+        )}
       </ul>
       <div>
         {user ? (

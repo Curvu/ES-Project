@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useRequest } from 'hooks/useRequest';
 import { ProgressBar } from 'components/ProgressBar';
@@ -9,16 +9,18 @@ import api from 'api'
 import styles from './bookings.module.css'
 
 function Bookings() {
+  const [paidServiceIds, setPaidServiceIds] = useState([]);
+
   const { doRequest: getBookings, data } = useRequest(api.getBookings);
 
-  const { doRequest: payService } = useRequest(api.payService);
+  const { doRequest: payService, isLoading } = useRequest(api.payService, {
+    onSuccess: (data) => setPaidServiceIds((prev) => [...prev, data.id]),
+  });
 
   useEffect(() => {
     getBookings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  console.log(data)
 
   return (
     <main className={styles.bookings}>
@@ -31,7 +33,7 @@ function Bookings() {
             <Button
               className={styles.button}
               onClick={() => payService(booking.id)}
-              disabled={!booking?.can_pay}
+              disabled={!booking?.can_pay || paidServiceIds.includes(booking.id) || isLoading}
             >
               Pay
             </Button>
@@ -41,8 +43,6 @@ function Bookings() {
             labels={['Scheduled', 'Repairing', 'Waiting for Pickup', 'Delivered']}
             currentIndex={parseInt(booking.state)}
           />
-
-          {/* TODO: if service_state > 1 then show pay button, also change card if state is -1 */}
         </Card>
       ))}
     </main>

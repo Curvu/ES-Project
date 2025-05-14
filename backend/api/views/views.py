@@ -75,4 +75,4 @@ def pay_service(request, user, token, service_id):
     response = Service.pay_service(service_id, user)
     if not response:
         return JsonResponse({"error": "Error paying."}, status=400)
-    return JsonResponse({"message": "Service paid successfully"}, status=200)
+    return JsonResponse({"message": "Service paid successfully", "id": service_id}, status=200)
