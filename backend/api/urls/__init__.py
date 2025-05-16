@@ -14,26 +14,16 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.urls import path
-from .views.auth import *
-from .views.views import *
-from .views.admin import *
+from django.urls import path, include
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
-    path('force_register', force_register),
-    path('force_login', force_login),
+    path('auth/', include('api.urls.auth_urls')),
+    path('services/', include('api.urls.service_urls')),
 
-    path('login', login),
-    path('logout', logout),
-    path('register', register),
-    path('create_collection', create_collection),
+    # Schema (raw OpenAPI JSON)
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
 
-    path('services', get_all_services),
-    path('services/<int:service_type>', get_service),
-    path('pay-service/<str:service_id>', pay_service),
-    path('book-service', book_service),
-    path('bookings', get_bookings),
-
-    path('admin/bookings', admin_get_bookings),
-    path('admin/booking', admin_set_booking),
+    # Swagger UI (interactive docs)
+    path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
 ]

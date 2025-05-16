@@ -20,19 +20,18 @@ const getAxiosInstance = (type) => {
 const request = getAxiosInstance('json');
 
 const api = {
-  getUser: () => request.get('/user'),
-  login: (data) => request.post('/login', data),
-  register: (data) => request.post('/register', data),
-  logout: () => request.post('/logout'),
+  login: (data) => request.post('/auth/login/', data),
+  register: (data) => request.post('/auth/register/', data),
+  logout: () => request.post('/auth/logout/'),
 
-  getServices: () => request.get('/services'),
-  getService: (id) => request.get(`/services/${id}`),
-  bookService: (data) => request.post('/book-service', data),
-  getBookings: () => request.get('/bookings'),
-  payService: (id) => request.post(`/pay-service/${id}`),
+  getServices: () => request.get('/services/'),
+  getService: (id) => request.get(`/services/${id}/`),
+  getBookings: () => request.get('/services/bookings/'),
+  bookService: (data) => request.post('/services/book/', data),
+  payService: (id) => request.post(`/services/pay/${id}/`),
 
-  getAdminBookings: () => request.get('/admin/bookings'),
-  setBookingState: (data) => request.put('/admin/booking', data),
+  getAdminBookings: () => request.get('/services/admin-bookings/'),
+  setBookingState: (data) => request.put('/services/admin-booking/', data),
 };
 
 export default api;

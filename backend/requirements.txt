@@ -5,3 +5,5 @@ boto3
 djangorestframework-simplejwt
 dotenv
 psycopg[binary]
+drf-spectacular
+drf-spectacular[sidecar]

@@ -33,7 +33,7 @@ export const ProgressBar = ({ labels, currentIndex, clickable=false, booking={} 
               <button
                 className={styles.index}
                 disabled={!clickable || isActive || isCurrent || data?.state === -1 || isLast}
-                onClick={() => doRequest({ booking_id: booking.id, state: index+1 })}
+                onClick={() => doRequest({ service_id: booking.id, state: index+1 })}
               >{index + 1}</button>
               <span className={styles.label}>{label}</span>
             </div>

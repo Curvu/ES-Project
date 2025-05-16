@@ -103,7 +103,7 @@
       "Parameters": {
         "service_id.$": "$.service_id",
         "schedule_time.$": "$.schedule_time",
-        "sstate.$": "$.status.Item.sstate.N",
+        "sstate.$": "$.status.Item.sstate.S",
         "paid.$": "$.status.Item.paid.BOOL"
       },
       "ResultPath": "$",

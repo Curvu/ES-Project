@@ -2,23 +2,8 @@ from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 import uuid
-from .dynamodb import *
-
-class User(models.Model):
-    username = models.CharField(max_length=255, unique=True)
-    is_admin = models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.username
-
-class Token(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    token = models.TextField()
-    created_at = models.DateTimeField(default=timezone.now)
-    is_valid = models.BooleanField(default=True)
-
-    def __str__(self):
-        return f"{self.user.username} - {self.token} - {self.is_valid}"
+from .user import User
+from ..dynamodb import get_status, update_status
 
 class Service(models.Model):
     class States(models.IntegerChoices):
@@ -52,12 +37,11 @@ class Service(models.Model):
     @classmethod
     def user_can_book(cls, user, type=None):
         services = cls.objects.filter(user=user, type=type)
-
         for service in services:
             status = get_status(service.id)
             if not status:
                 return False
-            status = status.get("sstate", 0)
+            status = int(status.get("sstate", 0))
             if status < cls.States.DELIVERED and status != cls.States.CANCELLED:
                 return False
         return True
@@ -65,27 +49,20 @@ class Service(models.Model):
     @classmethod
     def user_can_pay(cls, service_id, user):
         status = get_status(service_id)
+        print(f"Status for service {service_id}: {status}")
+        print(f"User: {user}, User ID: {user.id}")
         if not status:
             return False
-
-        state = status.get("sstate", 0)
+        state = int(status.get("sstate", 0))
+        print(f"State: {state}")
+        print(f"Paid: {status.get('paid', False)}")
+        print(f"state in [cls.States.REPAIRING, cls.States.WAITING_FOR_PICKUP]: {state in [cls.States.REPAIRING, cls.States.WAITING_FOR_PICKUP]}")
+        print(f"User has any services: {cls.objects.filter(user=user).exists()}")
         return (
             state in [cls.States.REPAIRING, cls.States.WAITING_FOR_PICKUP]
             and not status.get("paid", False)
             and cls.objects.filter(user=user).exists()
         )
-
-    @classmethod
-    def get_all_service_prices(cls, user=None):
-        return [
-            {
-                "id": t.value,
-                "name": t.label,
-                "price": cls.PRICES.get(t.value, 0),
-                "can_book": cls.user_can_book(user, t),
-            }
-            for t in cls.Types
-        ]
 
     @classmethod
     def is_time_slot_booked(cls, datetime):
@@ -100,13 +77,7 @@ class Service(models.Model):
             not cls.user_can_book(user, type) or
             datetime < timezone.now()):
             return 0
-
-        service = cls(
-            user=user,
-            type=type,
-            schedule_time=datetime
-        )
-
+        service = cls(user=user, type=type, schedule_time=datetime)
         service.save()
         return service
 
@@ -116,7 +87,7 @@ class Service(models.Model):
         if not status:
             return False
 
-        state = status.get("sstate", 0)
+        state = int(status.get("sstate", 0))
         paid = status.get("paid", False)
         if state not in [cls.States.REPAIRING, cls.States.WAITING_FOR_PICKUP]:
             return False
@@ -129,15 +100,3 @@ class Service(models.Model):
 
         update_status(service_id, "paid", True)
         return True
-
-    def to_dict(self):
-        status = get_status(self.id) or {}
-        return {
-            "id": self.id,
-            "schedule_time": self.schedule_time,
-            "type": self.Types(self.type).label,
-            "state": status.get("sstate"),
-            "paid": status.get("paid"),
-            "can_pay": self.user_can_pay(self.id, self.user),
-            "delivered": status.get("delivered"),
-        }
