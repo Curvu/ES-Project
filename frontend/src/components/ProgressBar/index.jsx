@@ -18,6 +18,7 @@ export const ProgressBar = ({ labels, currentIndex, clickable=false, booking={} 
         let isError = data?.state === -1 && index === 0
         let isActive = index < data?.state - 1
         let isCurrent = index === data?.state - 1
+        let isLast = index === labels.length - 1 && !booking?.paid;
 
         return (
           <React.Fragment key={label}>
@@ -31,7 +32,7 @@ export const ProgressBar = ({ labels, currentIndex, clickable=false, booking={} 
             >
               <button
                 className={styles.index}
-                disabled={!clickable || isActive || isCurrent || data?.state === -1}
+                disabled={!clickable || isActive || isCurrent || data?.state === -1 || isLast}
                 onClick={() => doRequest({ booking_id: booking.id, state: index+1 })}
               >{index + 1}</button>
               <span className={styles.label}>{label}</span>

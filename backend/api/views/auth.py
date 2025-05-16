@@ -53,9 +53,6 @@ def register(request):
 
         rekognition = get_rekognition_client()
         successful_indices = 0
-        # User.objects.all().delete() # Uncomment to delete all users
-        # rekognition.delete_collection(CollectionId='my_collection') # Uncomment to delete the collection
-        # rekognition.create_collection(CollectionId='my_collection') # Only run once to create the collection
 
         for image in images:
             image_data = base64.b64decode(image.split(',')[1])

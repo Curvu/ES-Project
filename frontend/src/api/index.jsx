@@ -21,8 +21,8 @@ const request = getAxiosInstance('json');
 
 const api = {
   getUser: () => request.get('/user'),
-  login: (data) => request.post('/force_login', data),
-  register: (data) => request.post('/force_register', data),
+  login: (data) => request.post('/login', data),
+  register: (data) => request.post('/register', data),
   logout: () => request.post('/logout'),
 
   getServices: () => request.get('/services'),

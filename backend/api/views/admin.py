@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view
 from django.http import JsonResponse
 from ..utils import require_params, authenticated, get_stepfunctions_client
 from ..models import Service
-from ..dynamodb import update_status
+from ..dynamodb import update_status, get_status
 from django.utils.dateparse import parse_datetime
 
 @api_view(["GET"])
@@ -30,12 +30,15 @@ def admin_set_booking(request, user, token):
     if not service:
         return JsonResponse({"error": "Service not found"}, status=404)
 
-    # client = get_stepfunctions_client()
-    # response = client.send_task_success(
-    #     taskToken=token,
-    #     output=json.dumps({"service_state": state})
-    # )
+    status = get_status(service_id)
+    if not status:
+        return JsonResponse({"error": "Service status not found"}, status=404)
 
-    update_status(service_id, "service_state", state)
+    paid = status.get("paid", False)
+
+    if state == 4 and not paid:
+        return JsonResponse({"error": "Cannot set state to 'completed' without payment"}, status=400)
+
+    update_status(service_id, "sstate", state)
 
     return JsonResponse({"message": "Booking updated successfully", "state": state}, status=200)

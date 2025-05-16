@@ -57,8 +57,8 @@ class Service(models.Model):
             status = get_status(service.id)
             if not status:
                 return False
-            status = status.get("service_state", 0)
-            if status < cls.States.FINISHED and status != cls.States.CANCELLED:
+            status = status.get("sstate", 0)
+            if status < cls.States.DELIVERED and status != cls.States.CANCELLED:
                 return False
         return True
 
@@ -68,7 +68,7 @@ class Service(models.Model):
         if not status:
             return False
 
-        state = status.get("service_state", 0)
+        state = status.get("sstate", 0)
         return (
             state in [cls.States.REPAIRING, cls.States.WAITING_FOR_PICKUP]
             and not status.get("paid", False)
@@ -109,19 +109,23 @@ class Service(models.Model):
 
         service.save()
         return service
-    
+
     @classmethod
     def pay_service(cls, service_id, user):
         status = get_status(service_id)
         if not status:
             return False
 
-        state = status.get("service_state", 0)
+        state = status.get("sstate", 0)
+        paid = status.get("paid", False)
         if state not in [cls.States.REPAIRING, cls.States.WAITING_FOR_PICKUP]:
             return False
 
         if not cls.user_can_pay(service_id, user):
             return False
+
+        if paid:
+            return True
 
         update_status(service_id, "paid", True)
         return True
@@ -132,7 +136,7 @@ class Service(models.Model):
             "id": self.id,
             "schedule_time": self.schedule_time,
             "type": self.Types(self.type).label,
-            "state": status.get("service_state"),
+            "state": status.get("sstate"),
             "paid": status.get("paid"),
             "can_pay": self.user_can_pay(self.id, self.user),
             "delivered": status.get("delivered"),
