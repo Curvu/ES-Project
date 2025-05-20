@@ -1,0 +1,305 @@
+{
+  "Comment": "BookingWorkflow",
+  "StartAt": "BookService",
+  "States": {
+    "BookService": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:putItem",
+      "Parameters": {
+        "TableName": "ServiceStatus",
+        "Item": {
+          "service_id": {
+            "S.$": "$.service_id"
+          },
+          "sstate": {
+            "S": "1"
+          },
+          "paid": {
+            "BOOL": false
+          },
+          "start_time_at": {
+            "S.$": "$$.State.EnteredTime"
+          },
+          "paid_at": {
+            "NULL": true
+          },
+          "finished_repairing_at": {
+            "NULL": true
+          }
+        }
+      },
+      "Next": "WaitForSchedule",
+      "InputPath": "$",
+      "ResultPath": null,
+      "OutputPath": "$"
+    },
+    "WaitForSchedule": {
+      "Type": "Wait",
+      "TimestampPath": "$.schedule_time",
+      "Next": "GetServiceStatus"
+    },
+    "GetServiceStatus": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:getItem",
+      "Parameters": {
+        "TableName": "ServiceStatus",
+        "Key": {
+          "service_id": {
+            "S.$": "$.service_id"
+          }
+        }
+      },
+      "ResultPath": "$.status",
+      "Next": "IsNoShow"
+    },
+    "IsNoShow": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.status.Item.sstate.S",
+          "StringEquals": "1",
+          "Next": "UpdateSStateToFailed"
+        }
+      ],
+      "Default": "WaitForPayment"
+    },
+    "WaitForPayment": {
+      "Type": "Wait",
+      "Seconds": 60,
+      "Next": "GetSS"
+    },
+    "GetSS": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:getItem",
+      "Parameters": {
+        "TableName": "ServiceStatus",
+        "Key": {
+          "service_id": {
+            "S.$": "$.service_id"
+          }
+        }
+      },
+      "ResultPath": "$.status",
+      "Next": "CheckTime"
+    },
+    "CheckTime": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:000000000000:function:CheckTime",
+      "Parameters": {
+        "current_time.$": "$$.State.EnteredTime",
+        "compared_time.$": "$.status.Item.start_time_at.S"
+      },
+      "ResultPath": "$.res",
+      "Next": "EvaluatePaymentTimeout"
+    },
+    "EvaluatePaymentTimeout": {
+      "Type": "Pass",
+      "Parameters": {
+        "service_id.$": "$.service_id",
+        "paid.$": "$.status.Item.paid.BOOL",
+        "greater.$": "$.res.greater"
+      },
+      "Next": "CheckTimeAndPayment"
+    },
+    "CheckTimeAndPayment": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "And": [
+            {
+              "Variable": "$.paid",
+              "BooleanEquals": false
+            },
+            {
+              "Variable": "$.greater",
+              "BooleanEquals": true
+            }
+          ],
+          "Next": "UpdateSStateToFailed"
+        },
+        {
+          "And": [
+            {
+              "Variable": "$.paid",
+              "BooleanEquals": false
+            },
+            {
+              "Variable": "$.greater",
+              "BooleanEquals": false
+            }
+          ],
+          "Next": "WaitForPayment"
+        }
+      ],
+      "Default": "SetStateToRepairing"
+    },
+    "SetStateToRepairing": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Parameters": {
+        "TableName": "ServiceStatus",
+        "Key": {
+          "service_id": {
+            "S.$": "$.service_id"
+          }
+        },
+        "UpdateExpression": "SET sstate = :val, paid_at = :ts",
+        "ExpressionAttributeValues": {
+          ":val": {
+            "S": "3"
+          },
+          ":ts": {
+            "S.$": "$$.State.EnteredTime"
+          }
+        }
+      },
+      "ResultPath": "$.status",
+      "Next": "WaitForRepairing"
+    },
+    "WaitForRepairing": {
+      "Type": "Wait",
+      "Seconds": 60,
+      "Next": "GetState"
+    },
+    "GetState": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:getItem",
+      "Parameters": {
+        "TableName": "ServiceStatus",
+        "Key": {
+          "service_id": {
+            "S.$": "$.service_id"
+          }
+        }
+      },
+      "ResultPath": "$.status",
+      "Next": "EvaluateState"
+    },
+    "EvaluateState": {
+      "Type": "Pass",
+      "Parameters": {
+        "service_id.$": "$.status.Item.service_id.S",
+        "sstate.$": "$.status.Item.sstate.S"
+      },
+      "Next": "FinishedRepairing"
+    },
+    "FinishedRepairing": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.sstate",
+          "StringEquals": "3",
+          "Next": "WaitForRepairing"
+        }
+      ],
+      "Default": "SetStateToDelivery"
+    },
+    "SetStateToDelivery": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Parameters": {
+        "TableName": "ServiceStatus",
+        "Key": {
+          "service_id": {
+            "S.$": "$.service_id"
+          }
+        },
+        "UpdateExpression": "SET finished_repairing_at = :ts",
+        "ExpressionAttributeValues": {
+          ":ts": {
+            "S.$": "$$.State.EnteredTime"
+          }
+        }
+      },
+      "ResultPath": "$.status",
+      "Next": "WaitForPickup"
+    },
+    "WaitForPickup": {
+      "Type": "Wait",
+      "Seconds": 60,
+      "Next": "GetNewState"
+    },
+    "GetNewState": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:getItem",
+      "Parameters": {
+        "TableName": "ServiceStatus",
+        "Key": {
+          "service_id": {
+            "S.$": "$.service_id"
+          }
+        }
+      },
+      "ResultPath": "$.status",
+      "Next": "CheckTime_2"
+    },
+    "CheckTime_2": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:000000000000:function:CheckTime",
+      "Parameters": {
+        "current_time.$": "$$.State.EnteredTime",
+        "compared_time.$": "$.status.Item.finished_repairing_at.S"
+      },
+      "ResultPath": "$.res",
+      "Next": "PassState"
+    },
+    "PassState": {
+      "Type": "Pass",
+      "Next": "Delivered",
+      "Parameters": {
+        "service_id.$": "$.service_id",
+        "sstate.$": "$.status.Item.sstate.S",
+        "greater.$": "$.res.greater"
+      }
+    },
+    "Delivered": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "And": [
+            {
+              "Variable": "$.sstate",
+              "StringEquals": "4"
+            },
+            {
+              "Variable": "$.greater",
+              "BooleanEquals": true
+            }
+          ],
+          "Next": "UpdateSStateToFailed"
+        },
+        {
+          "Variable": "$.sstate",
+          "StringEquals": "5",
+          "Next": "Finish"
+        }
+      ],
+      "Default": "WaitForPickup"
+    },
+    "UpdateSStateToFailed": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Parameters": {
+        "TableName": "ServiceStatus",
+        "Key": {
+          "service_id": {
+            "S.$": "$.service_id"
+          }
+        },
+        "UpdateExpression": "SET sstate = :val",
+        "ExpressionAttributeValues": {
+          ":val": {
+            "S": "-1"
+          }
+        }
+      },
+      "Next": "Fail"
+    },
+    "Finish": {
+      "Type": "Succeed"
+    },
+    "Fail": {
+      "Type": "Fail"
+    }
+  }
+}

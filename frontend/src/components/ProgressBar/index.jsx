@@ -1,23 +1,20 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useRequest } from 'hooks/useRequest';
 import api from 'api';
 
 import styles from './progressbar.module.css'
 
-export const ProgressBar = ({ labels, currentIndex, clickable=false, booking={} }) => {
-  const { data, setData, doRequest } = useRequest(api.setBookingState);
-
-  useEffect(() => {
-    setData({state: currentIndex});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIndex]);
+export const ProgressBar = ({ labels, currentIndex, clickable=false, booking={}, onSuccess=()=>{} }) => {
+  const { doRequest } = useRequest(api.setBookingState, {
+    onSuccess: () => onSuccess()
+  });
 
   return (
     <div className={styles.progress}>
       {labels.map((label, index) => {
-        let isError = data?.state === -1 && index === 0
-        let isActive = index < data?.state - 1
-        let isCurrent = index === data?.state - 1
+        let isError = currentIndex === -1 && index === 0
+        let isActive = index < currentIndex - 1
+        let isCurrent = index === currentIndex - 1
         let isLast = index === labels.length - 1 && !booking?.paid;
 
         return (
@@ -32,7 +29,7 @@ export const ProgressBar = ({ labels, currentIndex, clickable=false, booking={} 
             >
               <button
                 className={styles.index}
-                disabled={!clickable || isActive || isCurrent || data?.state === -1 || isLast}
+                disabled={!clickable || isActive || isCurrent || currentIndex === -1 || isLast}
                 onClick={() => doRequest({ service_id: booking.id, state: index+1 })}
               >{index + 1}</button>
               <span className={styles.label}>{label}</span>

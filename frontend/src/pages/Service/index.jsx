@@ -25,30 +25,35 @@ function Service() {
   const { doRequest: getService, data, setData } = useRequest(api.getService);
 
   const { doRequest: bookService, isLoading } = useRequest(api.bookService, {
-    onSuccess: () => navigate('/my-bookings')
+    onSuccess: () => navigate('/my-bookings'),
+    onError: (error) => {
+      console.log(error)
+      alert('Error booking service')
+    }
   });
+
+  const { doRequest: getTakenSchedules, data: takenSchedules } = useRequest(api.takenSchedules)
 
   useEffect(() => {
     if (!location.state?.service) getService(pathname);
     else setData(location.state.service)
-    console.log(data)
+    getTakenSchedules()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
 
   const onSubmit = (e) => {
     e.preventDefault()
 
     const normalized = new Date(datetime)
-    normalized.setMinutes(0, 0, 0);
+    normalized.setMinutes(normalized.getMinutes(), 0, 0);
 
     const in1min = new Date();
     in1min.setMinutes(in1min.getMinutes() + 1);
 
     const booking = {
       service_id: data.id,
-      // datetime: normalized.toISOString(),
-      datetime: in1min.toISOString(), // this is for testing
+      datetime: normalized.toISOString(),
+      // datetime: in1min.toISOString(), // this is for testing
     }
     console.log(booking)
 
@@ -64,8 +69,8 @@ function Service() {
           selected={datetime}
           onChange={(date) => setDatetime(date)}
           showTimeSelect
-          dateFormat="dd/MM HH"
-          timeFormat="HH"
+          dateFormat="dd/MM HH:mm"
+          timeFormat="HH:mm"
           timeIntervals={60}
           timeCaption="Hour"
           minDate={new Date()}
@@ -74,6 +79,17 @@ function Service() {
           Book
         </Button>
       </form>
+
+      <div className={styles.takenSchedules}>
+        <h3>Taken schedules</h3>
+        <ul>
+          {takenSchedules?.schedules.map((schedule, idx) => (
+            <li key={idx}>
+              {schedule}
+            </li>
+          ))}
+        </ul>
+      </div>
     </main>
   )
 }

@@ -29,9 +29,10 @@ const api = {
   getBookings: () => request.get('/services/bookings/'),
   bookService: (data) => request.post('/services/book/', data),
   payService: (id) => request.post(`/services/pay/${id}/`),
+  takenSchedules: () => request.get('/services/taken-schedules/'),
 
   getAdminBookings: () => request.get('/services/admin-bookings/'),
-  setBookingState: (data) => request.put('/services/admin-booking/', data),
+  nextStage: (id) => request.put(`/services/admin-booking/${id}/`),
 };
 
 export default api;

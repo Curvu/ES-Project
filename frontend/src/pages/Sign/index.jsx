@@ -27,7 +27,10 @@ const Sign = () => {
         login(data.user);
         navigate('/');
       },
-      onError: (err) => console.error('Sign failed:', err),
+      onError: (err) => {
+        console.error(err);
+        alert('Error signing in');
+      }
     }
   );
 

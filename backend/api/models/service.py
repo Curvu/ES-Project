@@ -7,10 +7,10 @@ from ..dynamodb import get_status, update_status
 
 class Service(models.Model):
     class States(models.IntegerChoices):
-        SCHEDULED = 1, "Scheduled"
-        REPAIRING = 2, "Repairing"
-        WAITING_FOR_PICKUP = 3, "Waiting for Pickup"
-        DELIVERED = 4, "Delivered"
+        SCHEDULE = 1, "Schedule"
+        PAYMENT = 2, "Payment"
+        REPAIRING = 3, "Repairing"
+        DELIVERY = 4, "Delivery"
         FINISHED = 5, "Finished"
         CANCELLED = -1, "Cancelled"
 
@@ -42,24 +42,23 @@ class Service(models.Model):
             if not status:
                 return False
             status = int(status.get("sstate", 0))
-            if status < cls.States.DELIVERED and status != cls.States.CANCELLED:
+            if status <= cls.States.PAYMENT and status != cls.States.CANCELLED:
                 return False
         return True
 
     @classmethod
     def user_can_pay(cls, service_id, user):
         status = get_status(service_id)
-        print(f"Status for service {service_id}: {status}")
-        print(f"User: {user}, User ID: {user.id}")
         if not status:
             return False
         state = int(status.get("sstate", 0))
-        print(f"State: {state}")
-        print(f"Paid: {status.get('paid', False)}")
-        print(f"state in [cls.States.REPAIRING, cls.States.WAITING_FOR_PICKUP]: {state in [cls.States.REPAIRING, cls.States.WAITING_FOR_PICKUP]}")
-        print(f"User has any services: {cls.objects.filter(user=user).exists()}")
+        paid = status.get("paid", False)
+
+        if paid:
+            return False
+
         return (
-            state in [cls.States.REPAIRING, cls.States.WAITING_FOR_PICKUP]
+            state == cls.States.PAYMENT
             and not status.get("paid", False)
             and cls.objects.filter(user=user).exists()
         )
@@ -68,7 +67,8 @@ class Service(models.Model):
     def is_time_slot_booked(cls, datetime):
         end_time = datetime + timezone.timedelta(hours=1)
         return cls.objects.filter(
-            Q(schedule_time__lt=end_time) & Q(schedule_time__gte=datetime)
+            schedule_time__lt=end_time,
+            schedule_time__gt=datetime - timezone.timedelta(hours=1)
         ).exists()
 
     @classmethod
@@ -83,20 +83,8 @@ class Service(models.Model):
 
     @classmethod
     def pay_service(cls, service_id, user):
-        status = get_status(service_id)
-        if not status:
-            return False
-
-        state = int(status.get("sstate", 0))
-        paid = status.get("paid", False)
-        if state not in [cls.States.REPAIRING, cls.States.WAITING_FOR_PICKUP]:
-            return False
-
         if not cls.user_can_pay(service_id, user):
             return False
-
-        if paid:
-            return True
 
         update_status(service_id, "paid", True)
         return True

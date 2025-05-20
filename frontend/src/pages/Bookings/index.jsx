@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import { useRequest } from 'hooks/useRequest';
 import { ProgressBar } from 'components/ProgressBar';
@@ -9,12 +9,10 @@ import api from 'api'
 import styles from './bookings.module.css'
 
 function Bookings() {
-  const [paidServiceIds, setPaidServiceIds] = useState([]);
-
-  const { doRequest: getBookings, data } = useRequest(api.getBookings);
+  const { doRequest: getBookings, data, isLoading: isLoading2 } = useRequest(api.getBookings);
 
   const { doRequest: payService, isLoading } = useRequest(api.payService, {
-    onSuccess: (data) => setPaidServiceIds((prev) => [...prev, data.id]),
+    onSuccess: () => getBookings(),
   });
 
   useEffect(() => {
@@ -33,14 +31,14 @@ function Bookings() {
             <Button
               className={styles.button}
               onClick={() => payService(booking.id)}
-              disabled={!booking?.can_pay || paidServiceIds.includes(booking.id) || isLoading}
+              disabled={!booking?.can_pay || isLoading || isLoading2}
             >
               Pay
             </Button>
             {booking.paid ? 'Paid' : 'Not Paid'}
           </div>
           <ProgressBar
-            labels={['Scheduled', 'Repairing', 'Waiting for Pickup', 'Delivered']}
+            labels={['Schedule', 'Payment', 'Repairing', 'Delivery']}
             currentIndex={parseInt(booking.state)}
           />
         </Card>

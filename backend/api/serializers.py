@@ -57,7 +57,7 @@ class ServiceSerializer(serializers.ModelSerializer):
 
     def get_state(self, obj):
         status = get_status(obj.id)
-        return status.get("sstate") if status else None
+        return int(status.get("sstate")) if status else None
 
     def get_paid(self, obj):
         status = get_status(obj.id)
@@ -74,8 +74,3 @@ class ServiceSerializer(serializers.ModelSerializer):
 class BookServiceRequestSerializer(serializers.Serializer):
     service_id = serializers.UUIDField(help_text="UUID of the service to book")
     datetime = serializers.CharField(help_text="ISO 8601 formatted datetime string for the booking (e.g., '2023-10-01T12:00:00Z')")
-
-
-class SetBookingStateRequestSerializer(serializers.Serializer):
-    service_id = serializers.UUIDField(help_text="UUID of the service booking")
-    state = serializers.CharField(help_text="New state for the booking (e.g., 'confirmed', 'cancelled')")

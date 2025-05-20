@@ -1,8 +1,9 @@
 # Engenharia de Serviços
 
 # TODO
-- [ ] Urgent: criar toasty para alertas
+- URGENT: FIX FRONTEND
 
+- tokens com tempo?
 
 
 - indepotent payment ? SERIALIZE - idk if this is done

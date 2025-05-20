@@ -6,16 +6,23 @@ import api from 'api'
 import styles from './bookings.module.css'
 import { ProgressBar } from 'components/ProgressBar';
 import { Card } from 'components/Card';
+import { Button } from 'components/Button';
 
 function Admin() {
   const { doRequest: getBookings, data } = useRequest(api.getAdminBookings);
+
+  const { doRequest: nextStage } = useRequest(api.nextStage, {
+    onSuccess: () => getBookings(),
+    onError: (error) => {
+      console.log(error)
+      alert('Error moving to next stage')
+    }
+  });
 
   useEffect(() => {
     getBookings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  console.log(data)
 
   return (
     <main className={styles.bookings}>
@@ -25,13 +32,17 @@ function Admin() {
         <Card key={booking.id} className={styles.booking}>
           <h3>{booking.type}</h3>
           <ProgressBar
-            labels={['Scheduled', 'Repairing', 'Waiting for Pickup', 'Delivered']}
-            currentIndex={parseInt(booking.state)}
-            clickable
+            labels={['Schedule', 'Payment', 'Repairing', 'Delivery']}
+            currentIndex={booking.state}
             booking={booking}
           />
 
-          {/* TODO: if service_state > 1 then show pay button, also change card if state is -1 */}
+          <Button
+            onClick={() => nextStage(booking.id)}
+            disabled={booking.state === 2 || booking.state === 5}
+          >
+            Next Stage
+          </Button>
         </Card>
       ))}
     </main>

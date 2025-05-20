@@ -8,13 +8,14 @@ from api.dynamodb import update_status, get_status
 from api.serializers import (
     ServiceSerializer,
     ServiceTypeSerializer,
-    BookServiceRequestSerializer,
-    SetBookingStateRequestSerializer
+    BookServiceRequestSerializer
 )
 from django.utils.dateparse import parse_datetime
 import json
 from django.utils.decorators import method_decorator
 from drf_spectacular.utils import extend_schema, OpenApiResponse
+from django.utils import timezone
+from datetime import timedelta
 
 
 @method_decorator(authenticated, name='dispatch')
@@ -70,6 +71,35 @@ class UserBookingsView(APIView):
     def get(self, request, user, token):
         services = Service.objects.filter(user=user)
         return Response({"bookings": ServiceSerializer(services, context={'user': user}, many=True).data}, status=status.HTTP_200_OK)
+
+
+@method_decorator(authenticated, name='dispatch')
+class AllTakenSchedulesView(APIView):
+    @extend_schema(
+        summary="Get all active/upcoming taken schedules",
+        description="Returns only the schedules that are currently active or in the future (not yet finished).",
+        parameters=get_auth_header_parameter(),
+        responses={
+            200: OpenApiResponse(description="List of active or upcoming schedules"),
+            500: OpenApiResponse(description="Internal server error"),
+        }
+    )
+    def get(self, request, user, token):
+        try:
+            now = timezone.now()
+            active_schedules = Service.objects.filter(
+                schedule_time__gte=now - timedelta(hours=1)
+            ).values_list('schedule_time', flat=True).order_by('schedule_time')
+
+            # Format each datetime to "DD/MM/YYYY - HH:MM"
+            formatted_schedules = [
+                timezone.localtime(schedule + timedelta(hours=1)).strftime("%d/%m/%Y - %H:%M")
+                for schedule in active_schedules
+            ]
+
+            return Response({"schedules": formatted_schedules}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @method_decorator(authenticated, name='dispatch')
@@ -160,10 +190,9 @@ class AdminBookingsView(APIView):
 @method_decorator(authenticated, name='dispatch')
 class AdminBookingView(APIView):
     @extend_schema(
-        summary="Update booking state for admin",
+        summary="Update booking state for the next one",
         description="Allows an admin to update the state of a booking.",
         parameters=get_auth_header_parameter(),
-        request=SetBookingStateRequestSerializer,
         responses={
             200: OpenApiResponse(description="Booking updated successfully"),
             400: OpenApiResponse(description="Bad request, e.g. invalid state or service not found"),
@@ -172,13 +201,9 @@ class AdminBookingView(APIView):
             500: OpenApiResponse(description="Internal server error during status update")
         }
     )
-    @validate_request(SetBookingStateRequestSerializer)
-    def put(self, request, user, token, payload):
+    def put(self, request, user, token, service_id):
         if not user.is_admin:
             return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
-
-        service_id = payload.get("service_id")
-        state = payload.get("state")
 
         service = Service.objects.filter(id=service_id).first()
         if not service:
@@ -188,11 +213,11 @@ class AdminBookingView(APIView):
         if not ss:
             return Response({"error": "Service status not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        paid = ss.get("paid", False)
+        ste = int(ss.get("sstate"))
 
-        if state == 4 and not paid:
-            return Response({"error": "Cannot set state to 'completed' without payment"}, status=status.HTTP_400_BAD_REQUEST)
+        if (ste == 2 or ste == 5):
+            return Response({"error": "Can't update booking state"}, status=status.HTTP_400_BAD_REQUEST)
 
-        update_status(service_id, "sstate", state)
+        update_status(service_id, "sstate", str(ste+1))
 
         return Response({"message": "Booking updated successfully"}, status=status.HTTP_200_OK)

@@ -2,7 +2,7 @@
 
 set -e
 
-AWS_DIR="/home/curvu/uni/ES/ES-Project/backend/api/AWS"
+AWS_DIR="/home/curvu/uni/2semestre/ES/ES-Project/backend/AWS"
 
 echo "Creating Dynamodb table..."
 export PYTHONPATH="$HOME/.local/lib/python3.10/site-packages:$PYTHONPATH"

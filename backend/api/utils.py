@@ -60,6 +60,6 @@ def get_auth_header_parameter():
             type=OpenApiTypes.STR,
             location=OpenApiParameter.HEADER,
             required=True,
-            description='JWT token. Format: <your_token>'
+            description='JWT Token for authentication'
         )
     ]
