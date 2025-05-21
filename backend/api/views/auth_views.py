@@ -58,7 +58,7 @@ class RegisterView(APIView):
                 user.save()
                 user_data = {'username': name, 'is_admin': False}
                 token = encode_token(user_data)
-                Token.objects.create(user=user, token=token)
+                Token.objects.create(token=token)
                 return Response({'token': token, 'user': user_data}, status=status.HTTP_200_OK)
 
             return Response({'error': 'No face indexed'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -96,7 +96,7 @@ class LoginView(APIView):
                 user = User.objects.filter(username=face_match['Face']['ExternalImageId']).first()
                 user_data = {'username': user.username, 'is_admin': user.is_admin}
                 token = encode_token(user_data)
-                Token.objects.create(user=user, token=token)
+                Token.objects.create(token=token)
                 return Response({'token': token, 'user': user_data}, status=status.HTTP_200_OK)
             return Response({'error': 'No face match found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
@@ -117,7 +117,7 @@ class LogoutView(APIView):
     )
     def post(self, request, user, token):
         try:
-            Token.objects.filter(user=user, token=token).update(is_valid=False)
+            Token.objects.filter(token=token).update(is_valid=False)
             return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

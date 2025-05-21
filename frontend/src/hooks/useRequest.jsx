@@ -19,7 +19,10 @@ export const useRequest = (requestFunc, options) => {
         setError(error);
         options?.onError?.(error);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false)
+        options?.onFinally?.();
+      });
   }, [requestFunc, options]);
 
   return {

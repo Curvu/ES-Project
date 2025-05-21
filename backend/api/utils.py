@@ -2,6 +2,7 @@ import boto3
 from jwt import encode, decode
 import os
 from drf_spectacular.utils import OpenApiParameter, OpenApiTypes
+from datetime import timedelta, datetime, timezone
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -35,16 +36,18 @@ def get_stepfunctions_client() -> boto3.client:
         )
 
 
-def encode_token(data):
+def encode_token(data, expiry_minutes=60):
     """
     Generate a JWT token for the given user.
     """
-    token = encode(data, os.getenv('JWT_SECRET_KEY'), algorithm='HS256')
+    payload = data.copy()
+    payload['exp'] = datetime.now(timezone.utc) + timedelta(minutes=expiry_minutes)
+    token = encode(payload, os.getenv('JWT_SECRET_KEY'), algorithm='HS256')
     return token
 
 def decode_token(token):
     """
-    Decode the JWT token and return the payload.
+    Decode JWT token and return payload or None if invalid/expired.
     """
     try:
         payload = decode(token, os.getenv('JWT_SECRET_KEY'), algorithms=['HS256'])

@@ -14,12 +14,10 @@ export const Navbar = () => {
   const { user, logout } = useUser();
 
   const { doRequest: doLogout } = useRequest(api.logout, {
-    onSuccess: () => {
+    onFinally: () => {
       logout();
-      localStorage.removeItem('token');
       navigate('/sign');
-    },
-    onError: (err) => console.log('err', err)
+    }
   })
 
   return (
