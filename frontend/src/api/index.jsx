@@ -2,7 +2,8 @@ import axios from 'axios';
 
 const getAxiosInstance = (type) => {
   const axiosInstance = axios.create({
-    baseURL: 'http://localhost:8080',
+    // baseURL: 'http://localhost:8080',
+    baseURL: 'https://django-env.eba-i3yuiuiu.us-east-1.elasticbeanstalk.com',
     timeout: 60000,
   });
 
