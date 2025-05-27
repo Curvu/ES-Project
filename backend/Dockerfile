@@ -1,11 +1,10 @@
 FROM python:3.12-slim AS development
 
-RUN apk update && apk add --no-cache \
-  build-base
+RUN apt-get update && apt-get install -y build-essential
 
 WORKDIR /app
 
-COPY requirements.txt /app
+COPY requirements.txt /app/
 
 RUN pip install --upgrade pip && \
   pip install -r requirements.txt --no-cache-dir
@@ -13,7 +12,7 @@ RUN pip install --upgrade pip && \
 COPY . /app
 
 # Alias for python - py
-RUN ln -s $(which python) /usr/bin/py
+RUN ln -s $(which python3) /usr/bin/py
 
 # Alias for django - python manage.py
 RUN echo -e "#!/bin/sh\npython manage.py \$@" > /usr/bin/django && chmod +x /usr/bin/django
