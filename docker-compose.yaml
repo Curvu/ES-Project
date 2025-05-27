@@ -1,16 +1,16 @@
 services:
-  localstack:
-    image: localstack/localstack:latest
-    ports:
-      - "4566:4566"  # Edge port for all services
-      - "4571:4571"  # Optional: external API
-    environment:
-      - SERVICES=iam,s3,stepfunctions,dynamodb,lambda
-      - DEFAULT_REGION=us-east-1
-      - DOCKER_HOST=unix:///var/run/docker.sock
-    volumes:
-      - localstack_data:/var/lib/localstack
-      - /var/run/docker.sock:/var/run/docker.sock
+  # localstack:
+  #   image: localstack/localstack:latest
+  #   ports:
+  #     - "4566:4566"  # Edge port for all services
+  #     - "4571:4571"  # Optional: external API
+  #   environment:
+  #     - SERVICES=iam,s3,stepfunctions,dynamodb,lambda
+  #     - DEFAULT_REGION=us-east-1
+  #     - DOCKER_HOST=unix:///var/run/docker.sock
+  #   volumes:
+  #     - localstack_data:/var/lib/localstack
+  #     - /var/run/docker.sock:/var/run/docker.sock
 
   database:
     image: postgres
@@ -33,6 +33,7 @@ services:
     command: sh -c "pip install -r requirements.txt && python manage.py runserver 0.0.0.0:8080"
     volumes:
       - ./backend:/app
+      - ~/.aws:/root/.aws:ro
     ports:
       - 8080:8080
     develop:
@@ -42,9 +43,9 @@ services:
           action: sync+restart
     depends_on:
       - database
-      - localstack
+      # - localstack
     environment:
-      - IS_LOCAL=true
+      - IS_LOCAL=false
 
   frontend:
     image: oven/bun:1
@@ -57,4 +58,4 @@ services:
 
 volumes:
   postgres:
-  localstack_data:
+  # localstack_data:

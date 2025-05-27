@@ -69,7 +69,7 @@ class UserBookingsView(APIView):
         }
     )
     def get(self, request, user, token):
-        services = Service.objects.filter(user=user)
+        services = Service.objects.filter(user=user).order_by('-schedule_time')
         return Response({"bookings": ServiceSerializer(services, context={'user': user}, many=True).data}, status=status.HTTP_200_OK)
 
 
@@ -136,7 +136,7 @@ class BookServiceView(APIView):
         try:
             stepfunctions = get_stepfunctions_client()
             stepfunctions.start_execution(
-                stateMachineArn='arn:aws:states:us-east-1:000000000000:stateMachine:BookingWorkflow',
+                stateMachineArn='arn:aws:states:us-east-1:556717531959:stateMachine:ServiceWorkflow',
                 input=json.dumps({
                     "service_id": str(booking.id),
                     "schedule_time": datetime,
@@ -183,7 +183,7 @@ class AdminBookingsView(APIView):
         if not user.is_admin:
             return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
 
-        services = Service.objects.all()
+        services = Service.objects.all().order_by('-schedule_time')
         return Response({"bookings": ServiceSerializer(services, context={'user': user}, many=True).data}, status=status.HTTP_200_OK)
 
 
@@ -215,7 +215,7 @@ class AdminBookingView(APIView):
 
         ste = int(ss.get("sstate"))
 
-        if (ste == 2 or ste == 5):
+        if ste in (Service.States.CANCELLED, Service.States.PAYMENT, Service.States.FINISHED):
             return Response({"error": "Can't update booking state"}, status=status.HTTP_400_BAD_REQUEST)
 
         update_status(service_id, "sstate", str(ste+1))

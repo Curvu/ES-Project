@@ -15,7 +15,7 @@ def get_dynamodb_resource():
             aws_secret_access_key='test'
         )
     else:
-        return None
+        return boto3.resource('dynamodb', region_name='us-east-1')
 
 dynamodb = get_dynamodb_resource()
 

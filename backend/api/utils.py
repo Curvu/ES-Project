@@ -9,13 +9,7 @@ load_dotenv()
 IS_LOCAL = os.getenv('IS_LOCAL', 'false') == 'true'
 
 def get_rekognition_client() -> boto3.client:
-    return boto3.client(
-        'rekognition',
-        region_name=os.getenv('AWS_REGION'),
-        aws_access_key_id=os.getenv('aws_access_key_id'),
-        aws_secret_access_key=os.getenv('aws_secret_access_key'),
-        aws_session_token=os.getenv('aws_session_token')
-    )
+    return boto3.client('rekognition', region_name='us-east-1')
 
 def get_stepfunctions_client() -> boto3.client:
     if IS_LOCAL:
@@ -27,13 +21,7 @@ def get_stepfunctions_client() -> boto3.client:
             aws_secret_access_key='test'
         )
     else:
-        return boto3.client(
-            'stepfunctions',
-            region_name=os.getenv('AWS_REGION'),
-            aws_access_key_id=os.getenv('aws_access_key_id'),
-            aws_secret_access_key=os.getenv('aws_secret_access_key'),
-            aws_session_token=os.getenv('aws_session_token')
-        )
+        return boto3.client('stepfunctions', region_name='us-east-1')
 
 
 def encode_token(data, expiry_minutes=60):

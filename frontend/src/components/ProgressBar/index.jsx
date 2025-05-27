@@ -1,21 +1,14 @@
 import React from 'react';
-import { useRequest } from 'hooks/useRequest';
-import api from 'api';
 
 import styles from './progressbar.module.css'
 
-export const ProgressBar = ({ labels, currentIndex, clickable=false, booking={}, onSuccess=()=>{} }) => {
-  const { doRequest } = useRequest(api.setBookingState, {
-    onSuccess: () => onSuccess()
-  });
-
+export const ProgressBar = ({ labels, currentIndex }) => {
   return (
     <div className={styles.progress}>
       {labels.map((label, index) => {
         let isError = currentIndex === -1 && index === 0
         let isActive = index < currentIndex - 1
         let isCurrent = index === currentIndex - 1
-        let isLast = index === labels.length - 1 && !booking?.paid;
 
         return (
           <React.Fragment key={label}>
@@ -27,11 +20,7 @@ export const ProgressBar = ({ labels, currentIndex, clickable=false, booking={},
                 isError && styles.error,
               ].filter(Boolean).join(' ')}
             >
-              <button
-                className={styles.index}
-                disabled={!clickable || isActive || isCurrent || currentIndex === -1 || isLast}
-                onClick={() => doRequest({ service_id: booking.id, state: index+1 })}
-              >{index + 1}</button>
+              <button className={styles.index}>{index + 1}</button>
               <span className={styles.label}>{label}</span>
             </div>
             {index < labels.length - 1 && (

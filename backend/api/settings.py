@@ -89,7 +89,6 @@ WSGI_APPLICATION = 'api.wsgi.application'
 IS_LOCAL = os.getenv('IS_LOCAL', 'false') == 'true'
 
 if IS_LOCAL:
-    # Use SQLite for local development
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',

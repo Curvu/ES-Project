@@ -9,9 +9,9 @@ import { Card } from 'components/Card';
 import { Button } from 'components/Button';
 
 function Admin() {
-  const { doRequest: getBookings, data } = useRequest(api.getAdminBookings);
+  const { doRequest: getBookings, data, isLoading: isLoading2 } = useRequest(api.getAdminBookings);
 
-  const { doRequest: nextStage } = useRequest(api.nextStage, {
+  const { doRequest: nextStage, isLoading } = useRequest(api.nextStage, {
     onSuccess: () => getBookings(),
     onError: (error) => {
       console.log(error)
@@ -34,12 +34,12 @@ function Admin() {
           <ProgressBar
             labels={['Schedule', 'Payment', 'Repairing', 'Delivery']}
             currentIndex={booking.state}
-            booking={booking}
           />
 
           <Button
             onClick={() => nextStage(booking.id)}
-            disabled={booking.state === 2 || booking.state === 5}
+            disabled={[-1, 2, 5].includes(booking.state)}
+            isLoading={isLoading || isLoading2}
           >
             Next Stage
           </Button>
