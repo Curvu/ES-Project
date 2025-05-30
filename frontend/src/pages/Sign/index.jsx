@@ -38,7 +38,7 @@ const Sign = () => {
     if (!webcamRef.current) return;
 
     const screenshot = webcamRef.current.getScreenshot();
-    setImage(webcamRef.current.getScreenshot());
+    setImage(screenshot);
 
     if (isLogin) return;
     // Keep the last 5 images
