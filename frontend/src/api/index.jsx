@@ -1,24 +1,17 @@
 import axios from 'axios';
 
-const getAxiosInstance = (type) => {
-  const axiosInstance = axios.create({
-    // baseURL: 'http://localhost:8080',
-    baseURL: 'https://django-env.eba-i3yuiuiu.us-east-1.elasticbeanstalk.com',
-    timeout: 60000,
-  });
+const request = axios.create({
+  // baseURL: 'http://localhost:8080',
+  baseURL: 'https://django-env.eba-i3yuiuiu.us-east-1.elasticbeanstalk.com/api',
+  timeout: 60000,
+});
 
-  axiosInstance.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
-    config.headers.Authorization = `${token}`;
-    config.headers['Content-Type'] =
-      type === 'json' ? 'application/json' : 'multipart/form-data';
-    return config;
-  });
-
-  return axiosInstance;
-};
-
-const request = getAxiosInstance('json');
+request.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  config.headers.Authorization = `${token}`;
+  config.headers['Content-Type'] = 'application/json';
+  return config;
+});
 
 const api = {
   login: (data) => request.post('/auth/login/', data),

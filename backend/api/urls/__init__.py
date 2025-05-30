@@ -19,13 +19,13 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, Sp
 
 
 urlpatterns = [
-    path('auth/', include('api.urls.auth_urls')),
-    path('services/', include('api.urls.service_urls')),
+    path('api/auth/', include('api.urls.auth_urls')),
+    path('api/services/', include('api.urls.service_urls')),
     path('', include('api.urls.other_urls')),
 
     # Schema (raw OpenAPI JSON)
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
 
-    path("redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
-    path("swagger/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
+    path("api/swagger/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
 ]

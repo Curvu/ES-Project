@@ -5,5 +5,5 @@ from api.views.other_views import (
 
 urlpatterns = [
     path('', frontend, name='frontend'),
-    re_path(r'^.*\.*', frontend, name='frontend'),
+    re_path(r'^(?!api/).*$', frontend, name='frontend'),
 ]
