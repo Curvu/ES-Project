@@ -1,5 +1,8 @@
 # Engenharia de Serviços
 
+## Grade:
+19.5/20 (only missed concurrent payment handling)
+
 # Commands
 ```
 ./init_localstack.sh
